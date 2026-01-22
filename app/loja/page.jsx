@@ -54,52 +54,32 @@ export default function Loja() {
     fetchProducts();
   }, []);
   return (
-    <div className="w-full h-auto p-4 pt-18 grid grid-cols-6 bg-background">
+    <div className="w-full h-auto p-4 grid grid-cols-2 md:grid-cols-6 bg-background">
       {products.map((product, index) => (
-        <div key={index} className="p-2">
-          <div className="bg-background-aux shadow h-auto bg-opacity-70 rounded-lg p-4 flex flex-col items-center">
-            <Image
-              src={`/images/roupas/${index + 1}.png`}
-              width={150}
-              height={150}
-              alt={`Product ${index + 1}`}
-              style={{ objectFit: "contain" }}
-            />
-            <div className="w-full h-auto mt-2 bg-background-aux rounded-md ">
-              <div>
-                <div className="flex flex-row items-center justify-between">
-                  <div>
-                    <h1 className="text-sm font-bold text-text font-montserrat mt-2">
-                      {product.name}
-                    </h1>
-                    <h1 className="text-xs text-text font-nunito">
-                      {product.collection}
-                    </h1>
-                  </div>
-                  {product.interressedUsers >= 5 && (
-                    <div className="flex flex-col items-center justify-center">
-                      <RiFireFill className="text-text" size={16} />
-                      <span className="text-text text-xs font-nunito">em alta!</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex justify-between items-center mt-2 mb-2">
-                  <p className="text-base text-text font-montserrat mb-2 mt-1">
-                    R$ {product.price.toFixed(2)}
-                  </p>
-                  <button className="px-2 py-1 bg-text rounded cursor-pointer hover:bg-text/80 transition">
-                    <span className="text-background-aux font-nunito text-sm">
-                      Comprar
-                    </span>
-                  </button>
-                </div>
-              </div>
-              {product.interressedUsers > 0 && (
-                <p className="text-xs opacity-80 font-bold text-text font-nunito mb-2">
-                  {product.interressedUsers} pessoas interessadas nesta peça
-                </p>
-              )}
+        <div className="p-2" key={product.id}>
+          <div className="overflow-hidden gap-2 flex flex-col">
+            <div className="relative w-full aspect-square">
+              <Image
+                src={product.image}
+                fill
+                alt={product.name}
+                className="object-contain"
+              />
             </div>
+
+            <div>
+              <h1 className="text-sm font-nunito text-text truncate">
+                {product.name}
+              </h1>
+
+              <p className="text-xl font-montserrat font-medium text-text">
+                R$ {product.price.toFixed(2)}
+              </p>
+            </div>
+
+            <button className="w-full bg-button-aux cursor-pointer font-medium text-background py-2 font-montserrat uppercase text-sm">
+              Comprar
+            </button>
           </div>
         </div>
       ))}

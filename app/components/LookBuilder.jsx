@@ -1,8 +1,10 @@
 "use client";
 import { CATEGORIES, GROUPED_CLOTHES } from "../data/mockClothes";
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { IoShuffle } from "react-icons/io5";
+import { LookCanvas } from "./LookCanvas";
 import Carousel from "./Carousel";
+import Image from "next/image";
 
 const initialSelectedIndices = CATEGORIES.reduce((acc, category) => {
   acc[category.id] = 0;
@@ -11,8 +13,12 @@ const initialSelectedIndices = CATEGORIES.reduce((acc, category) => {
 
 const LookBuilder = () => {
   const LOCAL_STORAGE_KEY = "kilario_saved_looks";
+
   const [savedLooks, setSavedLooks] = useState([]);
   const [lookName, setLookName] = useState("");
+  const [selectedIndices, setSelectedIndices] = useState(
+    initialSelectedIndices
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -24,23 +30,18 @@ const LookBuilder = () => {
   }, []);
 
   const saveCurrentLook = () => {
-    if (!lookName.trim()) {
-      return;
-    }
+    if (!lookName.trim()) return;
 
     const lookToSave = {
       id: Date.now(),
       name: lookName.trim(),
       indices: selectedIndices,
-      date: new Date().toLocaleString("pt-BR").split(",")[0],
+      date: new Date().toLocaleDateString("pt-BR"),
     };
 
     const newSavedLooks = [...savedLooks, lookToSave];
     setSavedLooks(newSavedLooks);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newSavedLooks));
-    }
-
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newSavedLooks));
     setLookName("");
   };
 
@@ -48,14 +49,9 @@ const LookBuilder = () => {
     setSelectedIndices(indices);
   };
 
-  const clearLook = () => {
-    setSelectedIndices(initialSelectedIndices);
-  };
-
   const shuffleLook = () => {
     const newIndices = CATEGORIES.reduce((acc, category) => {
       const items = GROUPED_CLOTHES[category.id];
-
       if (!items || items.length <= 1) {
         acc[category.id] = selectedIndices[category.id];
         return acc;
@@ -76,9 +72,7 @@ const LookBuilder = () => {
   const removeLook = (id) => {
     const newSavedLooks = savedLooks.filter((look) => look.id !== id);
     setSavedLooks(newSavedLooks);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newSavedLooks));
-    }
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newSavedLooks));
   };
 
   const getLookPreview = (indices, categoryId) => {
@@ -93,10 +87,6 @@ const LookBuilder = () => {
     return item.imagePath;
   };
 
-  const [selectedIndices, setSelectedIndices] = useState(
-    initialSelectedIndices
-  );
-
   const handleSelect = (categoryId, newIndex) => {
     setSelectedIndices((prev) => ({
       ...prev,
@@ -105,92 +95,109 @@ const LookBuilder = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row p-4 ">
-      <h1 className="text-3xl font-bold mb-6 w-full text-center lg:hidden">
-        O Que Eu Usaria Em...
-      </h1>
-
-      <div className="w-full lg:w-5/12 flex flex-col justify-center relative h-auto">
-        <h1 className="text-xl font-bold font-montserrat text-text hidden lg:block">
-          O Que Eu Usaria Em...
-        </h1>
-        {CATEGORIES.map((category) => (
-          <Carousel
-            key={category.id}
-            label={category.label}
-            items={GROUPED_CLOTHES[category.id]}
-            selectedIndex={selectedIndices[category.id]}
-            onSelect={(newIndex) => handleSelect(category.id, newIndex)}
-          />
-        ))}
-
-        <div className="mt-4 p-4 border-t border-gray-200 w-full">
-          <h3 className="text-lg font-semibold mb-2">Salvar Combinação</h3>
-          <div className="flex justify-between space-x-2">
-            <button>
-              <IoShuffle
-                size={24}
-                className="text-text cursor-pointer hover:text-text/80 transition duration-150"
-                title="Sortear Look"
-                onClick={shuffleLook}
-              />
-            </button>
-            <input
-              type="text"
-              placeholder="Ao Cinema, Em um date..."
-              value={lookName}
-              onChange={(e) => setLookName(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md "
+    <div className="flex flex-col gap-10 p-4">
+      {/* LAYOUT PRINCIPAL */}
+      <div className="flex flex-col lg:flex-row gap-10">
+        {/* ESQUERDA — CONTROLES */}
+        <div className="lg:w-4/12 flex flex-col">
+          {CATEGORIES.map((category) => (
+            <Carousel
+              key={category.id}
+              label={category.label}
+              items={GROUPED_CLOTHES[category.id]}
+              selectedIndex={selectedIndices[category.id]}
+              onSelect={(newIndex) => handleSelect(category.id, newIndex)}
             />
-            <button
-              onClick={saveCurrentLook}
-              className="flex-1 px-2  font-nunito bg-text text-white rounded-md cursor-pointer transition duration-150 font-medium"
-            >
-              Salvar
-            </button>
+          ))}
+
+          <div className="mt-6 p-4 border-t">
+            <h3 className="text-lg font-semibold mb-2">Dar um nome a isso</h3>
+            <div className="flex gap-2 items-center">
+              <button onClick={shuffleLook}>
+                <IoShuffle
+                  size={22}
+                  className="text-text hover:opacity-70"
+                  title="Sortear look"
+                />
+              </button>
+
+              <input
+                type="text"
+                placeholder="Cinema, festa estranha, domingo sem pressa…"
+                value={lookName}
+                onChange={(e) => setLookName(e.target.value)}
+                className="flex-1 p-2 border rounded-md"
+              />
+
+              <button
+                onClick={saveCurrentLook}
+                className="px-4 py-2 bg-text text-white rounded-md"
+              >
+                Salvar
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="w-full mt-6 lg:mt-0">
-        <h2 className="text-xl font-semibold mb-4">Combinações Salvas</h2>
-        <div className="p-4 rounded-lg overflow-y-auto">
+
+        {/* CENTRO — CORPO / ARTE */}
+        <div className="lg:w-4/12 flex justify-center">
+          <LookCanvas
+            selectedIndices={selectedIndices}
+            groupedClothes={GROUPED_CLOTHES}
+          />
+        </div>
+
+        {/* DIREITA — ARQUIVOS */}
+        <div className="lg:w-4/12">
+          <h2 className="text-xl font-semibold mb-4">Combinações Favoritas</h2>
+
           {savedLooks.length === 0 ? (
-            <p className="text-gray-500 italic">
-              Nenhuma combinação salva ainda.
+            <p className="italic text-gray-500">
+              Nenhum corpo arquivado ainda.
             </p>
           ) : (
-            <ul className="space-y-3 flex">
-              {savedLooks.map((look) => (
+            <div className="grid grid-cols-2 gap-4">
+              {savedLooks.map((look, index) => (
                 <li
                   key={look.id}
-                  className="flex items-center flex-col justify-between p-2 rounded-md transition duration-150"
+                  className="flex relative items-center flex-col justify-between p-2 rounded-md transition duration-150"
                 >
                   <div
-                    flex
-                    className="flex w-full items-center mb-2 justify-between"
+                    className={`absolute z-50 ${
+                      index % 2 === 0 ? "top-32 left-2" : "top-18 left-2 -rotate-14"
+                    } flex items-center`}
                   >
-                    <p className="font-semibold text-sm font-montserrat">
-                      {look.name}
-                    </p>
-                    <p className="text-xs text-text/60"> {look.date}</p>
+                    <Image
+                      src="/images/papertag.png"
+                      alt="Tag Icon"
+                      width={480}
+                      height={480}
+                      className="absolute min-w-28 min-h-18 -top-8 -left-6 rotate-8"
+                    />
+                    <div className="w-full min-w-28 min-h-18 -top-4 -left-5 absolute rotate-8">
+                      <p className="font-semibold text-sm font-montserrat">
+                        {look.name}
+                      </p>
+                      <p className="text-[8px] italic text-gray-500">Drop Novo!</p>
+                    </div>
                   </div>
                   <div className="flex items-center flex-col">
                     {getLookPreview(look.indices, 3) && (
                       <img
                         src={getLookPreview(look.indices, 3)}
                         alt="Preview Accessory"
-                        className="w-16 h-16 object-contain rounded"
+                        className="w-14 h-14 object-contain rounded"
                       />
                     )}
                     <img
                       src={getLookPreview(look.indices, 1)}
                       alt="Preview Top"
-                      className="w-28 h-28 object-contain rounded"
+                      className="w-20 h-20 object-contain rounded"
                     />
                     <img
                       src={getLookPreview(look.indices, 2)}
                       alt="Preview Bottom"
-                      className="w-28 h-28 object-contain rounded"
+                      className="w-20 h-20 object-contain rounded"
                     />
                   </div>
                   <div className="flex space-x-2 w-full">
@@ -211,7 +218,7 @@ const LookBuilder = () => {
                   </div>
                 </li>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
