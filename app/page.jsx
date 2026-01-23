@@ -2,6 +2,9 @@
 import Image from "next/image";
 import React from "react";
 import "swiper/css";
+import Footer from "./components/footer";
+import Link from "next/link";
+import { IoChevronForward } from "react-icons/io5";
 
 export default function Home() {
   const [products, setProducts] = React.useState([]);
@@ -72,13 +75,76 @@ export default function Home() {
                 </p>
               </div>
 
-              <button className="w-full bg-button-aux cursor-pointer font-medium text-background py-2 font-montserrat uppercase text-sm">
+              <button className="w-full bg-text-aux rounded cursor-pointer font-medium text-background py-2 font-montserrat uppercase text-sm">
                 Comprar
               </button>
             </div>
           </div>
         ))}
       </div>
+      <div className="grid grid-cols-2">
+        <Image
+          src="/images/canfish.png"
+          width={1920}
+          height={1080}
+          alt="Home Image"
+          style={{ objectFit: "cover", zIndex: -1 }}
+        />
+        <div className="relative">
+          <div className="py-2 pr-10 flex justify-between md:items-center flex-col md:flex-row gap-y-3 absolute top-0 w-full">
+            <div>
+              <h1 className="text-base tracking-wide font-bold text-button font-montserrat">
+                Monte seu look <span className="font-burgues">Kilariô</span>
+              </h1>
+              <p className="text-xs text-text font-nunito">Confira as peças do nosso guarda-roupa</p>
+            </div>
+              <Link
+                href={"/guardaroupa"}
+                className="flex items-center gap-1 hover:underline"
+              >
+                <IoChevronForward className="inline-block w-4 h-4 text-button" />
+              </Link>
+          </div>
+          <Image
+            src="/images/guardaroupa.png"
+            width={1920}
+            height={1080}
+            alt="Home Image"
+            style={{ objectFit: "cover", zIndex: -1 }}
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mt-4 z-10">
+        {products.map((product) => (
+          <div className="p-2" key={product.id}>
+            <div className="overflow-hidden gap-2 flex flex-col">
+              <div className="relative w-full aspect-square">
+                <Image
+                  src={product.image}
+                  fill
+                  alt={product.name}
+                  className="object-contain"
+                />
+              </div>
+
+              <div>
+                <h1 className="text-sm font-nunito text-text truncate">
+                  {product.name}
+                </h1>
+
+                <p className="text-xl font-montserrat font-medium text-text">
+                  R$ {product.price.toFixed(2)}
+                </p>
+              </div>
+
+              <button className="w-full bg-text-aux rounded cursor-pointer font-medium text-background py-2 font-montserrat uppercase text-sm">
+                Comprar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <Footer />
     </div>
   );
 }

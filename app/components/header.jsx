@@ -78,7 +78,7 @@ export default function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-background z-50"
+              className="fixed inset-0 bg-background-blur z-50"
               onClick={() => setOpen(false)}
             />
 
@@ -105,6 +105,14 @@ export default function Header() {
                   </Link>
                 ))}
               </nav>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed z-40 bottom-0"
+              >
+                a
+              </motion.div>
             </motion.aside>
           </>
         )}
