@@ -21,9 +21,14 @@ export function DataCard({
   className,
 }: DataCardProps) {
   return (
-    <Card className={cn("", className)}>
+    <Card className={cn("", className, "pt-0")}>
       <CardContent className="p-4">
-        <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          {icon && (
+            <div className="p-5 bg-accent/20 rounded-lg text-accent-foreground">
+              {icon}
+            </div>
+          )}
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground font-serif">{title}</p>
             <p className="text-2xl font-bold text-foreground">{value}</p>
@@ -33,11 +38,6 @@ export function DataCard({
               </p>
             )}
           </div>
-          {icon && (
-            <div className="p-2 bg-accent/20 rounded-lg text-accent-foreground">
-              {icon}
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

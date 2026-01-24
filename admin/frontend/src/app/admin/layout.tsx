@@ -80,10 +80,7 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between h-14 px-4 border-b border-border bg-background">
-        <h1 className="text-lg font-bold text-foreground">Brechó Admin</h1>
-
+      <header className="sticky top-0 z-50 flex items-center gap-4 h-14 px-4 border-b border-border bg-background">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
@@ -95,28 +92,21 @@ export default function AdminLayout({
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72 p-0">
+          <SheetContent side="left" className="w-72 p-0">
             <div className="flex items-center justify-between h-14 px-4 border-b border-border">
               <span className="text-lg font-bold text-foreground">Menu</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-              >
-                <X className="h-5 w-5" />
-              </Button>
             </div>
             <div className="p-4">
               <NavLinks onClose={() => setIsOpen(false)} />
             </div>
           </SheetContent>
         </Sheet>
+
+        <h1 className="text-lg font-bold text-foreground">Kilariô Admin</h1>
       </header>
 
-      {/* Main Content */}
       <main className="pb-20">{children}</main>
 
-      {/* Bottom Navigation (Mobile) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-inset-bottom">
         <div className="flex items-center justify-around h-16">
           {navItems.slice(0, 5).map((item) => {

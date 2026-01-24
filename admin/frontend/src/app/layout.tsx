@@ -15,8 +15,8 @@ const _nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Brechó Admin",
-  description: "Painel administrativo do brechó",
+  title: "Kilariô Admin",
+  description: "Painel administrativo do brechó Kilariô",
   generator: "v0.app",
   icons: {
     icon: [

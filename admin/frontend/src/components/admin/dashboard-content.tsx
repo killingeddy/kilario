@@ -51,12 +51,12 @@ export function DashboardContent() {
 
   return (
     <div className="p-4 space-y-6">
-      {/* Stats Cards */}
-      <section className="grid grid-cols-2 gap-3">
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <DataCard
           title="Total vendido"
           value={formatCurrency(stats.totalSales)}
           icon={<DollarSign className="h-5 w-5" />}
+          className="bg-highlight"
         />
         <DataCard
           title="Pedidos hoje"
@@ -74,11 +74,9 @@ export function DashboardContent() {
           icon={<ShirtIcon className="h-5 w-5" />}
         />
       </section>
-
-      {/* Recent Sales */}
       <section>
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">
                 Últimas vendas
@@ -125,10 +123,9 @@ export function DashboardContent() {
         </Card>
       </section>
 
-      {/* Active Drops */}
       <section>
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">
                 Drops ativos
@@ -169,10 +166,9 @@ export function DashboardContent() {
         </Card>
       </section>
 
-      {/* Notifications */}
       <section>
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 Notificações

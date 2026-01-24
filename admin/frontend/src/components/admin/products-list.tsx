@@ -118,26 +118,23 @@ export function ProductsList() {
       </p>
 
       {/* Products Grid (Cards for mobile) */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {filteredProducts.map((product) => {
           const drop = getDropById(product.dropId);
 
           return (
-            <Card key={product.id} className="overflow-hidden">
+            <Card key={product.id} className="overflow-hidden p-0">
               <CardContent className="p-0">
-                <div className="flex gap-3 p-3">
-                  {/* Image */}
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-secondary shrink-0">
-                    <img
-                      src={product.images[0] || "/placeholder.svg"}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Info */}
+                <div className="flex gap-3 p-3 flex-col">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col md:flex-row items-start gap-2">
+                      <div className="w-full h-40 md:w-24 md:h-24 rounded-lg overflow-hidden bg-secondary shrink-0">
+                        <img
+                          src={product.images[0] || "/placeholder.svg"}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                       <div>
                         <h3 className="text-sm font-semibold text-foreground truncate">
                           {product.name}
@@ -145,34 +142,34 @@ export function ProductsList() {
                         <p className="text-xs text-muted-foreground font-serif">
                           {product.brand} • Tam. {product.size}
                         </p>
+                        <p className="text-xs font-bold text-foreground whitespace-nowrap">
+                          {formatCurrency(product.price)} •{" "}
+                          <StatusBadge
+                              variant={getProductStatusVariant(product.status)}
+                            >
+                              {productStatusLabels[product.status]}
+                            </StatusBadge>
+                        </p>
+
+                        <div className="flex items-center justify-between md:mt-2">
+                          <div className="flex items-center gap-2 md:flex-row flex-col">
+                            
+                            {/* {drop && (
+                              <span className="text-xs text-muted-foreground font-serif">
+                                {drop.name}
+                              </span>
+                            )} */}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm font-bold text-foreground whitespace-nowrap">
-                        {formatCurrency(product.price)}
-                      </p>
                     </div>
 
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-2">
-                        <StatusBadge
-                          variant={getProductStatusVariant(product.status)}
-                        >
-                          {productStatusLabels[product.status]}
-                        </StatusBadge>
-                        {drop && (
-                          <span className="text-xs text-muted-foreground font-serif">
-                            {drop.name}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-2 mt-3 md:flex-row flex-col w-full">
                       <Button
                         asChild
                         variant="outline"
                         size="sm"
-                        className="flex-1 bg-transparent"
+                        className="flex-1 bg-transparent w-full rounded p-2"
                       >
                         <Link href={`/admin/products/${product.id}`}>
                           <Eye className="h-3 w-3 mr-1" />
@@ -183,7 +180,7 @@ export function ProductsList() {
                         asChild
                         variant="secondary"
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 w-full rounded p-2"
                       >
                         <Link href={`/admin/products/${product.id}/edit`}>
                           <Pencil className="h-3 w-3 mr-1" />
