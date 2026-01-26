@@ -7,9 +7,7 @@ const router = express.Router();
 router.use(authAdmin);
 
 router.get("/", dashboardController.getDashboard);
-
 router.get("/sales-chart", dashboardController.getSalesChart);
-
 router.get("/top-products", dashboardController.getTopProducts);
 
 module.exports = router;
