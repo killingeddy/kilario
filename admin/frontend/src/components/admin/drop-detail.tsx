@@ -231,7 +231,7 @@ export function DropDetail({ id }: DropDetailProps) {
           >
             <span className="flex items-center gap-1.5">
               <ShirtIcon className="h-4 w-4" />
-              {products.length} pecas
+              {products.length} peças
             </span>
             <span>Criado em {formatDate(collection.created_at)}</span>
           </div>
@@ -252,7 +252,7 @@ export function DropDetail({ id }: DropDetailProps) {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base" style={{ color: "var(--text)" }}>
-              Pecas do drop
+              Peças do drop
             </CardTitle>
             <Button
               asChild

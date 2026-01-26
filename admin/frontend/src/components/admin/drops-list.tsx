@@ -119,7 +119,7 @@ export function DropsList() {
                         style={{ color: "var(--text-aux)" }}
                       >
                         <ShirtIcon className="h-3 w-3" />
-                        {collection.products_count || 0} pecas
+                        {collection.products_count || 0} peças
                       </span>
 
                       <span

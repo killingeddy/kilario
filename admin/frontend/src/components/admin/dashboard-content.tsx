@@ -121,7 +121,7 @@ export function DashboardContent() {
           icon={<Truck className="h-5 w-5" />}
         />
         <DataCard
-          title="Pecas disponiveis"
+          title="Peças disponiveis"
           value={stats?.total_products || 0}
           icon={<ShirtIcon className="h-5 w-5" />}
         />
@@ -269,7 +269,7 @@ export function DashboardContent() {
                           className="text-xs font-serif"
                           style={{ color: "var(--text-aux)" }}
                         >
-                          {collection.products_count || 0} pecas
+                          {collection.products_count || 0} peças
                         </p>
                       </div>
                       <ChevronRight

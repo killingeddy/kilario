@@ -82,7 +82,7 @@ export function ProductsList() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
-          Pecas
+          Peças
         </h1>
         <Button
           asChild
@@ -165,7 +165,7 @@ export function ProductsList() {
 
       {/* Results count */}
       <p className="text-sm font-serif" style={{ color: "var(--text-aux)" }}>
-        {total} {total === 1 ? "peca encontrada" : "pecas encontradas"}
+        {total} {total === 1 ? "peca encontrada" : "peças encontradas"}
       </p>
 
       {/* Loading */}

@@ -25,7 +25,7 @@ import { notificationsApi } from "@/lib/api";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/products", label: "Pecas", icon: ShirtIcon },
+  { href: "/admin/products", label: "Peças", icon: ShirtIcon },
   { href: "/admin/drops", label: "Drops", icon: Layers },
   { href: "/admin/orders", label: "Vendas", icon: ShoppingBag },
   { href: "/admin/deliveries", label: "Entregas", icon: Truck },
