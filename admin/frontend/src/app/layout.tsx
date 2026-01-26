@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Montserrat, Nunito } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { AuthProvider } from "@/contexts/auth-context";
 import "./globals.css";
 
 const _montserrat = Montserrat({
@@ -15,8 +16,8 @@ const _nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Kilariô Admin",
-  description: "Painel administrativo do brechó Kilariô",
+  title: "Brechó Admin",
+  description: "Painel administrativo do brechó",
   generator: "v0.app",
   icons: {
     icon: [
@@ -53,7 +54,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`font-sans antialiased`}>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <Analytics />
       </body>
     </html>
