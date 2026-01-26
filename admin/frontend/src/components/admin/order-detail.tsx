@@ -147,7 +147,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
 
       {/* Status */}
       <Card
-        className="border-0 shadow-sm"
+        className="border-0 "
         style={{ backgroundColor: "var(--background)" }}
       >
         <CardContent className="p-4">
@@ -200,7 +200,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
 
       {/* Customer Info */}
       <Card
-        className="border-0 shadow-sm"
+        className="border-0 "
         style={{ backgroundColor: "var(--background)" }}
       >
         <CardHeader className="pb-2">
@@ -240,7 +240,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
 
       {/* Items */}
       <Card
-        className="border-0 shadow-sm"
+        className="border-0 "
         style={{ backgroundColor: "var(--background)" }}
       >
         <CardHeader className="pb-2">
@@ -302,7 +302,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
 
       {/* Payment */}
       <Card
-        className="border-0 shadow-sm"
+        className="border-0 "
         style={{ backgroundColor: "var(--background)" }}
       >
         <CardHeader className="pb-2">
@@ -357,7 +357,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
       {/* Delivery Address */}
       {order.address && (
         <Card
-          className="border-0 shadow-sm"
+          className="border-0 "
           style={{ backgroundColor: "var(--background)" }}
         >
           <CardHeader className="pb-2">

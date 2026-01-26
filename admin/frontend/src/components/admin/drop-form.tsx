@@ -91,7 +91,7 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
-        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+        <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
           <CardContent className="p-4">
             <FormSection title="Informacoes do drop">
               <div className="space-y-4">
@@ -152,7 +152,7 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
         </Card>
 
         {/* Status */}
-        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+        <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
           <CardContent className="p-4">
             <FormSection title="Status" description="Configure a visibilidade do drop">
               <div

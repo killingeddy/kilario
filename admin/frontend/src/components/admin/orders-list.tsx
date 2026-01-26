@@ -169,7 +169,7 @@ export function OrdersList() {
           {orders.map((order) => (
             <Link key={order.id} href={`/admin/orders/${order.id}`}>
               <Card
-                className="transition-opacity hover:opacity-80 border-0 shadow-sm"
+                className="transition-opacity hover:opacity-80 border-0 "
                 style={{ backgroundColor: "var(--background)" }}
               >
                 <CardContent className="p-4">

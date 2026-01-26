@@ -182,7 +182,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Images */}
         <Card
-          className="border-0 shadow-sm"
+          className="border-0 "
           style={{ backgroundColor: "var(--background)" }}
         >
           <CardContent className="p-4">
@@ -201,7 +201,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
 
         {/* Basic Info */}
         <Card
-          className="border-0 shadow-sm"
+          className="border-0 "
           style={{ backgroundColor: "var(--background)" }}
         >
           <CardContent className="p-4">
@@ -346,7 +346,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
 
         {/* Classification */}
         <Card
-          className="border-0 shadow-sm"
+          className="border-0 "
           style={{ backgroundColor: "var(--background)" }}
         >
           <CardContent className="p-4">
@@ -456,7 +456,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
 
         {/* Measurements */}
         <Card
-          className="border-0 shadow-sm"
+          className="border-0 "
           style={{ backgroundColor: "var(--background)" }}
         >
           <CardContent className="p-4">

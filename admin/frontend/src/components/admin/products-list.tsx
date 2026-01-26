@@ -184,7 +184,7 @@ export function ProductsList() {
           {products.map((product) => (
             <Card
               key={product.id}
-              className="overflow-hidden border-0 shadow-sm"
+              className="overflow-hidden border-0 "
               style={{ backgroundColor: "var(--background)" }}
             >
               <CardContent className="p-0">

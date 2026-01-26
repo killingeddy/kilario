@@ -208,7 +208,7 @@ export function DropDetail({ id }: DropDetailProps) {
       </div>
 
       {/* Info Card */}
-      <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+      <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2">
             <StatusBadge variant={collection.is_active ? "success" : "neutral"}>
@@ -248,7 +248,7 @@ export function DropDetail({ id }: DropDetailProps) {
       </Card>
 
       {/* Products in Drop */}
-      <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+      <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base" style={{ color: "var(--text)" }}>

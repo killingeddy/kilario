@@ -72,7 +72,7 @@ export function DropsList() {
         {collections.map((collection) => (
           <Link key={collection.id} href={`/admin/drops/${collection.id}`}>
             <Card
-              className="transition-opacity hover:opacity-80 border-0 shadow-sm"
+              className="transition-opacity hover:opacity-80 border-0 "
               style={{ backgroundColor: "var(--background)" }}
             >
               <CardContent className="p-4">

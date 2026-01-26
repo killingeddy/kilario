@@ -86,11 +86,11 @@ export function ImageUploader({
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  className="absolute top-1 right-1 p-1 bg-background rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 p-1 bg-background rounded-full  opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="h-3 w-3 text-foreground" />
                 </button>
-                <div className="absolute top-1 left-1 p-1 bg-background rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-1 left-1 p-1 bg-background rounded-full  opacity-0 group-hover:opacity-100 transition-opacity">
                   <GripVertical className="h-3 w-3 text-muted-foreground" />
                 </div>
               </div>

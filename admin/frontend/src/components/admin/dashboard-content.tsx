@@ -130,7 +130,7 @@ export function DashboardContent() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section>
           <Card
-            className="border-0 shadow-sm"
+            className="border-0 "
             style={{ backgroundColor: "var(--background)" }}
           >
             <CardHeader className="pb-3">
@@ -209,7 +209,7 @@ export function DashboardContent() {
 
         <section>
           <Card
-            className="border-0 shadow-sm"
+            className="border-0 "
             style={{ backgroundColor: "var(--background)" }}
           >
             <CardHeader className="pb-3">
@@ -286,7 +286,7 @@ export function DashboardContent() {
 
         <section>
           <Card
-            className="border-0 shadow-sm"
+            className="border-0 "
             style={{ backgroundColor: "var(--background)" }}
           >
             <CardHeader className="pb-3">
@@ -369,7 +369,7 @@ export function DashboardContent() {
 
         <section>
           <Card
-            className="border-0 shadow-sm"
+            className="border-0 "
             style={{ backgroundColor: "var(--background)" }}
           >
             <CardHeader className="pb-3">

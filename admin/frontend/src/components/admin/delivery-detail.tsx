@@ -143,7 +143,7 @@ export function DeliveryDetail({ id }: DeliveryDetailProps) {
       </div>
 
       {/* Status Card */}
-      <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+      <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
@@ -194,7 +194,7 @@ export function DeliveryDetail({ id }: DeliveryDetailProps) {
 
       {/* Customer Info */}
       {delivery.order && (
-        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+        <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
           <CardHeader className="pb-2">
             <CardTitle className="text-base" style={{ color: "var(--text)" }}>
               Cliente
@@ -229,7 +229,7 @@ export function DeliveryDetail({ id }: DeliveryDetailProps) {
 
       {/* Address */}
       {delivery.order?.address && (
-        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+        <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
           <CardHeader className="pb-2">
             <CardTitle
               className="text-base flex items-center gap-2"
@@ -275,7 +275,7 @@ export function DeliveryDetail({ id }: DeliveryDetailProps) {
 
       {/* Notes */}
       {delivery.notes && (
-        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+        <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
           <CardHeader className="pb-2">
             <CardTitle
               className="text-base flex items-center gap-2"

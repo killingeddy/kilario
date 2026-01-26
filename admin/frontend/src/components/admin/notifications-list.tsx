@@ -154,7 +154,7 @@ export function NotificationsList() {
             <Card
               key={notification.id}
               className={cn(
-                "transition-opacity cursor-pointer border-0 shadow-sm",
+                "transition-opacity cursor-pointer border-0 ",
                 !notification.is_read && "ring-1",
               )}
               style={{

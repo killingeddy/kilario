@@ -177,7 +177,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
 
       {/* Main Info */}
       <Card
-        className="border-0 shadow-sm"
+        className="border-0 "
         style={{ backgroundColor: "var(--background)" }}
       >
         <CardContent className="p-4 space-y-3">
@@ -228,7 +228,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
 
       {/* Details */}
       <Card
-        className="border-0 shadow-sm"
+        className="border-0 "
         style={{ backgroundColor: "var(--background)" }}
       >
         <CardHeader className="pb-2">
@@ -323,7 +323,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
       {/* Measurements */}
       {product.measurements && Object.keys(product.measurements).length > 0 && (
         <Card
-          className="border-0 shadow-sm"
+          className="border-0 "
           style={{ backgroundColor: "var(--background)" }}
         >
           <CardHeader className="pb-2">
