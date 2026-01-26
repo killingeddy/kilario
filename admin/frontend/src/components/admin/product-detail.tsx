@@ -80,7 +80,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
       </div>
 
       {/* Images */}
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <div className="aspect-square rounded-xl overflow-hidden bg-secondary">
           <img
             src={product.images[0] || "/placeholder.svg"}
@@ -104,103 +104,98 @@ export function ProductDetail({ id }: ProductDetailProps) {
             ))}
           </div>
         )}
-      </div>
+      </div> */}
 
-      {/* Main Info */}
-      <Card>
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-foreground">
-                {product.name}
-              </h2>
-              <p className="text-sm text-muted-foreground font-serif">
-                {product.brand}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-foreground">
+                  {product.name}
+                </h2>
+                <p className="text-sm text-muted-foreground font-serif">
+                  {product.brand}
+                </p>
+              </div>
+              <p className="text-xl font-bold text-foreground">
+                {formatCurrency(product.price)}
               </p>
             </div>
-            <p className="text-xl font-bold text-foreground">
-              {formatCurrency(product.price)}
-            </p>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <StatusBadge variant={getProductStatusVariant(product.status)}>
-              {productStatusLabels[product.status]}
-            </StatusBadge>
-            {drop && (
-              <span className="text-sm text-muted-foreground font-serif">
-                {drop.name}
-              </span>
+            <div className="flex items-center gap-2">
+              <StatusBadge variant={getProductStatusVariant(product.status)}>
+                {productStatusLabels[product.status]}
+              </StatusBadge>
+              {drop && (
+                <span className="text-sm text-muted-foreground font-serif">
+                  {drop.name}
+                </span>
+              )}
+            </div>
+
+            {product.description && (
+              <p className="text-sm text-foreground font-serif leading-relaxed">
+                {product.description}
+              </p>
             )}
-          </div>
-
-          {product.description && (
-            <p className="text-sm text-foreground font-serif leading-relaxed">
-              {product.description}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Details */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Detalhes</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <dl className="space-y-3">
-            <div className="flex justify-between">
-              <dt className="text-sm text-muted-foreground font-serif">
-                Tamanho
-              </dt>
-              <dd className="text-sm font-medium text-foreground">
-                {product.size}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-sm text-muted-foreground font-serif">
-                Estado
-              </dt>
-              <dd className="text-sm font-medium text-foreground">
-                {conditionLabels[product.condition]}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-sm text-muted-foreground font-serif">
-                Marca
-              </dt>
-              <dd className="text-sm font-medium text-foreground">
-                {product.brand}
-              </dd>
-            </div>
-          </dl>
-        </CardContent>
-      </Card>
-
-      {/* Measurements */}
-      {product.measurements.length > 0 && (
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Medidas</CardTitle>
+            <CardTitle className="text-base">Detalhes</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <dl className="space-y-3">
-              {product.measurements.map((measurement, index) => (
-                <div key={index} className="flex justify-between">
-                  <dt className="text-sm text-muted-foreground font-serif">
-                    {measurement.name}
-                  </dt>
-                  <dd className="text-sm font-medium text-foreground">
-                    {measurement.value}
-                  </dd>
-                </div>
-              ))}
+              <div className="flex justify-between">
+                <dt className="text-sm text-muted-foreground font-serif">
+                  Tamanho
+                </dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {product.size}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-sm text-muted-foreground font-serif">
+                  Estado
+                </dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {conditionLabels[product.condition]}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-sm text-muted-foreground font-serif">
+                  Marca
+                </dt>
+                <dd className="text-sm font-medium text-foreground">
+                  {product.brand}
+                </dd>
+              </div>
             </dl>
           </CardContent>
         </Card>
-      )}
-
-      {/* Actions */}
+        {product.measurements.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Medidas</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <dl className="space-y-3">
+                {product.measurements.map((measurement, index) => (
+                  <div key={index} className="flex justify-between">
+                    <dt className="text-sm text-muted-foreground font-serif">
+                      {measurement.name}
+                    </dt>
+                    <dd className="text-sm font-medium text-foreground">
+                      {measurement.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </CardContent>
+          </Card>
+        )}
+      </div>
       <div className="sticky bottom-20 bg-background pt-4 pb-2">
         <Button asChild className="w-full h-12 text-base">
           <Link href={`/admin/products/${product.id}/edit`}>

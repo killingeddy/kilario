@@ -103,7 +103,7 @@ export function OrdersList() {
       </div>
 
       {/* Orders List */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredOrders.map((order) => (
           <Link key={order.id} href={`/admin/orders/${order.id}`}>
             <Card className="hover:bg-secondary/50 transition-colors">

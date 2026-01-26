@@ -99,8 +99,7 @@ export function DeliveriesList() {
         </Select>
       </div>
 
-      {/* Deliveries List */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredDeliveries.map((delivery) => (
           <Link key={delivery.id} href={`/admin/deliveries/${delivery.id}`}>
             <Card className="hover:bg-secondary/50 transition-colors">

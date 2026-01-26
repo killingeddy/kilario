@@ -20,7 +20,6 @@ export function DropsList() {
 
   return (
     <div className="p-4 space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Drops</h1>
         <Button asChild size="sm">
@@ -31,7 +30,6 @@ export function DropsList() {
         </Button>
       </div>
 
-      {/* Stats */}
       <div className="flex gap-4 text-sm">
         <span className="text-muted-foreground font-serif">
           {drops.length} drops • {drops.filter((d) => d.isActive).length} ativos
@@ -39,7 +37,7 @@ export function DropsList() {
       </div>
 
       {/* Drops List */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {drops.map((drop) => (
           <Link key={drop.id} href={`/admin/drops/${drop.id}`}>
             <Card className="hover:bg-secondary/50 transition-colors">

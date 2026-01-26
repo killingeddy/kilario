@@ -11,6 +11,7 @@ interface DataCardProps {
   icon?: React.ReactNode;
   description?: string;
   className?: string;
+  cardClassName?: string;
 }
 
 export function DataCard({
@@ -19,13 +20,14 @@ export function DataCard({
   icon,
   description,
   className,
+  cardClassName
 }: DataCardProps) {
   return (
     <Card className={cn("", className, "pt-0")}>
       <CardContent className="p-4">
         <div className="flex items-center gap-2">
           {icon && (
-            <div className="p-5 bg-accent/20 rounded-lg text-accent-foreground">
+            <div className={cn("p-5 bg-accent/20 rounded-lg text-accent-foreground", cardClassName)}>
               {icon}
             </div>
           )}

@@ -105,7 +105,7 @@ export default function AdminLayout({
         <h1 className="text-lg font-bold text-foreground">Kilariô Admin</h1>
       </header>
 
-      <main className="pb-20">{children}</main>
+      <main className="pb-24">{children}</main>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-inset-bottom">
         <div className="flex items-center justify-around h-16">

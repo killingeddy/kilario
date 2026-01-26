@@ -65,7 +65,6 @@ export function DropDetail({ id }: DropDetailProps) {
 
   return (
     <div className="p-4 space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="icon">
@@ -91,7 +90,6 @@ export function DropDetail({ id }: DropDetailProps) {
         </div>
       </div>
 
-      {/* Info Card */}
       <Card>
         <CardContent className="p-4 space-y-4">
           <div className="flex items-center gap-2">
@@ -125,9 +123,8 @@ export function DropDetail({ id }: DropDetailProps) {
         </CardContent>
       </Card>
 
-      {/* Products in Drop */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Peças do drop</CardTitle>
             <Button asChild size="sm" variant="outline">
@@ -184,7 +181,6 @@ export function DropDetail({ id }: DropDetailProps) {
         </CardContent>
       </Card>
 
-      {/* Actions */}
       <div className="sticky bottom-20 bg-background pt-4 pb-2">
         <Button asChild className="w-full h-12 text-base">
           <Link href={`/admin/drops/${drop.id}/edit`}>
