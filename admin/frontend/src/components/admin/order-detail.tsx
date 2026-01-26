@@ -1,12 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   StatusBadge,
   getOrderStatusVariant,
-  getDeliveryStatusVariant,
 } from "@/components/admin/status-badge";
 import {
   ArrowLeft,
@@ -16,42 +23,57 @@ import {
   CreditCard,
   Truck,
   Package,
+  Loader2,
 } from "lucide-react";
-import {
-  orders,
-  getDeliveryByOrderId,
-  orderStatusLabels,
-  paymentMethodLabels,
-  deliveryStatusLabels,
-} from "@/lib/mock-data";
+import { ordersApi, type Order } from "@/lib/api";
+
+const orderStatusLabels: Record<string, string> = {
+  pending: "Pendente",
+  paid: "Pago",
+  shipped: "Enviado",
+  delivered: "Entregue",
+  cancelled: "Cancelado",
+};
+
+const paymentMethodLabels: Record<string, string> = {
+  pix: "PIX",
+  credit_card: "Cartao de Credito",
+  debit_card: "Cartao de Debito",
+  boleto: "Boleto",
+  cash: "Dinheiro",
+};
 
 interface OrderDetailProps {
   id: string;
 }
 
 export function OrderDetail({ id }: OrderDetailProps) {
-  const order = orders.find((o) => o.id === id);
-  const delivery = order ? getDeliveryByOrderId(order.id) : undefined;
+  const [order, setOrder] = useState<Order | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  if (!order) {
-    return (
-      <div className="p-4">
-        <div className="flex items-center gap-3 mb-6">
-          <Button asChild variant="ghost" size="icon">
-            <Link href="/admin/orders">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <h1 className="text-xl font-bold text-foreground">
-            Pedido não encontrado
-          </h1>
-        </div>
-        <p className="text-muted-foreground font-serif">
-          O pedido que você está procurando não existe ou foi removido.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    ordersApi
+      .get(id)
+      .then(setOrder)
+      .catch(() => setOrder(null))
+      .finally(() => setIsLoading(false));
+  }, [id]);
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!order) return;
+
+    setIsUpdating(true);
+    try {
+      const updated = await ordersApi.updateStatus(id, newStatus);
+      setOrder(updated);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      alert("Erro ao atualizar status");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString("pt-BR", {
@@ -70,9 +92,36 @@ export function OrderDetail({ id }: OrderDetailProps) {
     });
   };
 
-  const formatAddress = (address: typeof order.deliveryAddress) => {
-    return `${address.street}, ${address.number}${address.complement ? ` - ${address.complement}` : ""}`;
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2
+          className="h-8 w-8 animate-spin"
+          style={{ color: "var(--button)" }}
+        />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center gap-3 mb-6">
+          <Button asChild variant="ghost" size="icon">
+            <Link href="/admin/orders">
+              <ArrowLeft className="h-5 w-5" style={{ color: "var(--text)" }} />
+            </Link>
+          </Button>
+          <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
+            Pedido nao encontrado
+          </h1>
+        </div>
+        <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+          O pedido que voce esta procurando nao existe ou foi removido.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">
@@ -80,203 +129,269 @@ export function OrderDetail({ id }: OrderDetailProps) {
       <div className="flex items-center gap-3">
         <Button asChild variant="ghost" size="icon">
           <Link href="/admin/orders">
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" style={{ color: "var(--text)" }} />
           </Link>
         </Button>
         <div>
-          <h1 className="text-xl font-bold text-foreground">
-            Pedido #{order.id}
+          <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
+            Pedido #{order.id.slice(0, 8)}
           </h1>
-          <p className="text-xs text-muted-foreground font-serif">
-            {formatDate(order.createdAt)}
+          <p
+            className="text-xs font-serif"
+            style={{ color: "var(--text-aux)" }}
+          >
+            {formatDate(order.created_at)}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Status */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground font-serif">
-                  Status do pedido
-                </p>
-                <div className="mt-1">
-                  <StatusBadge variant={getOrderStatusVariant(order.status)}>
-                    {orderStatusLabels[order.status]}
-                  </StatusBadge>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground font-serif">
-                  Total
-                </p>
-                <p className="text-xl font-bold text-foreground">
-                  {formatCurrency(order.total)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Customer Info */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Cliente</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0 space-y-3">
-            <p className="text-sm font-semibold text-foreground">
-              {order.customerName}
-            </p>
-
+      {/* Status */}
+      <Card
+        className="border-0 shadow-sm"
+        style={{ backgroundColor: "var(--background)" }}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
             <div className="space-y-2">
+              <p
+                className="text-sm font-serif"
+                style={{ color: "var(--text-aux)" }}
+              >
+                Status do pedido
+              </p>
+              <Select
+                value={order.status}
+                onValueChange={handleStatusChange}
+                disabled={isUpdating}
+              >
+                <SelectTrigger
+                  className="w-40"
+                  style={{
+                    backgroundColor: "var(--background-aux)",
+                    borderColor: "var(--highlight-blur)",
+                    color: "var(--text)",
+                  }}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="paid">Pago</SelectItem>
+                  <SelectItem value="shipped">Enviado</SelectItem>
+                  <SelectItem value="delivered">Entregue</SelectItem>
+                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-right">
+              <p
+                className="text-sm font-serif"
+                style={{ color: "var(--text-aux)" }}
+              >
+                Total
+              </p>
+              <p className="text-xl font-bold" style={{ color: "var(--text)" }}>
+                {formatCurrency(order.total)}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Customer Info */}
+      <Card
+        className="border-0 shadow-sm"
+        style={{ backgroundColor: "var(--background)" }}
+      >
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base" style={{ color: "var(--text)" }}>
+            Cliente
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0 space-y-3">
+          <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+            {order.customer_name}
+          </p>
+
+          <div className="space-y-2">
+            {order.customer_phone && (
               <a
-                href={`tel:${order.customerPhone}`}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
+                href={`tel:${order.customer_phone}`}
+                className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+                style={{ color: "var(--text-aux)" }}
               >
                 <Phone className="h-4 w-4" />
-                {order.customerPhone}
+                {order.customer_phone}
               </a>
+            )}
+            {order.customer_email && (
               <a
-                href={`mailto:${order.customerEmail}`}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
+                href={`mailto:${order.customer_email}`}
+                className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+                style={{ color: "var(--text-aux)" }}
               >
                 <Mail className="h-4 w-4" />
-                {order.customerEmail}
+                {order.customer_email}
               </a>
-            </div>
-          </CardContent>
-        </Card>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Items */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              Itens do pedido
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {order.items.map((item) => (
+      {/* Items */}
+      <Card
+        className="border-0 shadow-sm"
+        style={{ backgroundColor: "var(--background)" }}
+      >
+        <CardHeader className="pb-2">
+          <CardTitle
+            className="text-base flex items-center gap-2"
+            style={{ color: "var(--text)" }}
+          >
+            <Package className="h-4 w-4" />
+            Itens do pedido
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div
+            className="divide-y"
+            style={{ borderColor: "var(--highlight-blur)" }}
+          >
+            {(order.items || []).map((item, index) => (
+              <div
+                key={item.id || index}
+                className="flex items-center gap-3 p-4"
+              >
                 <div
-                  key={item.productId}
-                  className="flex items-center gap-3 p-4"
+                  className="w-14 h-14 rounded-lg overflow-hidden shrink-0"
+                  style={{ backgroundColor: "var(--background-aux)" }}
                 >
-                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-secondary shrink-0">
-                    <img
-                      src={item.image || "/placeholder.svg"}
-                      alt={item.productName}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {item.productName}
-                    </p>
-                  </div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {formatCurrency(item.price)}
-                  </p>
+                  <img
+                    src={item.product?.images?.[0] || "/placeholder.svg"}
+                    alt={item.product?.title || "Produto"}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              ))}
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="text-sm font-medium truncate"
+                    style={{ color: "var(--text)" }}
+                  >
+                    {item.product?.title || "Produto"}
+                  </p>
+                  {item.quantity > 1 && (
+                    <p
+                      className="text-xs font-serif"
+                      style={{ color: "var(--text-aux)" }}
+                    >
+                      Qtd: {item.quantity}
+                    </p>
+                  )}
+                </div>
+                <p
+                  className="text-sm font-semibold"
+                  style={{ color: "var(--text)" }}
+                >
+                  {formatCurrency(item.price)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment */}
+      <Card
+        className="border-0 shadow-sm"
+        style={{ backgroundColor: "var(--background)" }}
+      >
+        <CardHeader className="pb-2">
+          <CardTitle
+            className="text-base flex items-center gap-2"
+            style={{ color: "var(--text)" }}
+          >
+            <CreditCard className="h-4 w-4" />
+            Pagamento
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <dl className="space-y-2">
+            {order.payment_method && (
+              <div className="flex justify-between">
+                <dt
+                  className="text-sm font-serif"
+                  style={{ color: "var(--text-aux)" }}
+                >
+                  Metodo
+                </dt>
+                <dd
+                  className="text-sm font-medium"
+                  style={{ color: "var(--text)" }}
+                >
+                  {paymentMethodLabels[order.payment_method] ||
+                    order.payment_method}
+                </dd>
+              </div>
+            )}
+            <div
+              className="flex justify-between pt-2 border-t"
+              style={{ borderColor: "var(--highlight-blur)" }}
+            >
+              <dt
+                className="text-sm font-semibold"
+                style={{ color: "var(--text)" }}
+              >
+                Total
+              </dt>
+              <dd
+                className="text-sm font-bold"
+                style={{ color: "var(--text)" }}
+              >
+                {formatCurrency(order.total)}
+              </dd>
             </div>
-          </CardContent>
-        </Card>
+          </dl>
+        </CardContent>
+      </Card>
 
-        {/* Payment */}
-        <Card>
+      {/* Delivery Address */}
+      {order.address && (
+        <Card
+          className="border-0 shadow-sm"
+          style={{ backgroundColor: "var(--background)" }}
+        >
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Pagamento
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <dl className="space-y-2">
-              <div className="flex justify-between">
-                <dt className="text-sm text-muted-foreground font-serif">
-                  Método
-                </dt>
-                <dd className="text-sm font-medium text-foreground">
-                  {paymentMethodLabels[order.paymentMethod]}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-sm text-muted-foreground font-serif">
-                  Subtotal
-                </dt>
-                <dd className="text-sm text-foreground">
-                  {formatCurrency(order.total - order.deliveryFee)}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-sm text-muted-foreground font-serif">
-                  Entrega
-                </dt>
-                <dd className="text-sm text-foreground">
-                  {formatCurrency(order.deliveryFee)}
-                </dd>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-border">
-                <dt className="text-sm font-semibold text-foreground">Total</dt>
-                <dd className="text-sm font-bold text-foreground">
-                  {formatCurrency(order.total)}
-                </dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-
-        {/* Delivery */}
-        <Card className="md:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle
+              className="text-base flex items-center gap-2"
+              style={{ color: "var(--text)" }}
+            >
               <Truck className="h-4 w-4" />
               Entrega
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0 space-y-3">
-            {delivery && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground font-serif">
-                  Status
-                </span>
-                <StatusBadge
-                  variant={getDeliveryStatusVariant(delivery.status)}
-                >
-                  {deliveryStatusLabels[delivery.status]}
-                </StatusBadge>
-              </div>
-            )}
-
             <div className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+              <MapPin
+                className="h-4 w-4 shrink-0 mt-0.5"
+                style={{ color: "var(--text-aux)" }}
+              />
               <div className="text-sm">
-                <p className="text-foreground">
-                  {formatAddress(order.deliveryAddress)}
+                <p style={{ color: "var(--text)" }}>
+                  {order.address.street}, {order.address.number}
+                  {order.address.complement && ` - ${order.address.complement}`}
                 </p>
-                <p className="text-muted-foreground font-serif">
-                  {order.deliveryAddress.neighborhood} -{" "}
-                  {order.deliveryAddress.city}/{order.deliveryAddress.state}
+                <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+                  {order.address.neighborhood} - {order.address.city}/
+                  {order.address.state}
                 </p>
-                <p className="text-muted-foreground font-serif">
-                  CEP: {order.deliveryAddress.zipCode}
+                <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+                  CEP: {order.address.zip_code}
                 </p>
               </div>
             </div>
-
-            {delivery && (
-              <Button asChild className="w-full mt-2">
-                <Link href={`/admin/deliveries/${delivery.id}`}>
-                  Ver detalhes da entrega
-                </Link>
-              </Button>
-            )}
           </CardContent>
         </Card>
-      </div>
+      )}
     </div>
   );
 }

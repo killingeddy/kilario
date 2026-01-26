@@ -1,19 +1,43 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ProductForm } from "@/components/admin/product-form";
-import { products } from "@/lib/mock-data";
+import { productsApi, type Product } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 interface ProductEditWrapperProps {
   id: string;
 }
 
 export function ProductEditWrapper({ id }: ProductEditWrapperProps) {
-  const product = products.find((p) => p.id === id);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    productsApi
+      .get(id)
+      .then(setProduct)
+      .catch(() => setProduct(null))
+      .finally(() => setIsLoading(false));
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2
+          className="h-8 w-8 animate-spin"
+          style={{ color: "var(--button)" }}
+        />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
       <div className="p-4">
-        <p className="text-muted-foreground font-serif">Peça não encontrada</p>
+        <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+          Peca nao encontrada
+        </p>
       </div>
     );
   }

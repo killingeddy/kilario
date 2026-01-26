@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,32 +16,59 @@ import {
   StatusBadge,
   getProductStatusVariant,
 } from "@/components/admin/status-badge";
-import { Plus, Search, Eye, Pencil, ChevronRight } from "lucide-react";
+import { Plus, Search, Eye, Pencil, Loader2 } from "lucide-react";
 import {
-  products,
-  drops,
-  getDropById,
-  productStatusLabels,
-  type ProductStatus,
-} from "@/lib/mock-data";
+  productsApi,
+  collectionsApi,
+  type Product,
+  type Collection,
+} from "@/lib/api";
+
+const productStatusLabels: Record<string, string> = {
+  draft: "Rascunho",
+  active: "Disponivel",
+  sold: "Vendida",
+  archived: "Arquivada",
+};
 
 export function ProductsList() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">(
-    "all",
-  );
-  const [dropFilter, setDropFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [collectionFilter, setCollectionFilter] = useState<string>("all");
+  const [total, setTotal] = useState(0);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(search.toLowerCase()) ||
-      product.brand.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || product.status === statusFilter;
-    const matchesDrop = dropFilter === "all" || product.dropId === dropFilter;
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [productsRes, collectionsRes] = await Promise.all([
+          productsApi.list({
+            search: search || undefined,
+            status: statusFilter !== "all" ? statusFilter : undefined,
+            collection_id:
+              collectionFilter !== "all" ? collectionFilter : undefined,
+          }),
+          collectionsApi.list(),
+        ]);
+        setProducts(productsRes.data || []);
+        setTotal(productsRes.total || 0);
+        setCollections(collectionsRes.data || []);
+      } catch (error) {
+        console.error("Error loading products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-    return matchesSearch && matchesStatus && matchesDrop;
-  });
+    const debounce = setTimeout(() => {
+      setIsLoading(true);
+      loadData();
+    }, 300);
+
+    return () => clearTimeout(debounce);
+  }, [search, statusFilter, collectionFilter]);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString("pt-BR", {
@@ -54,11 +81,20 @@ export function ProductsList() {
     <div className="p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">Peças</h1>
-        <Button asChild size="sm">
+        <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
+          Pecas
+        </h1>
+        <Button
+          asChild
+          size="sm"
+          style={{
+            backgroundColor: "var(--button)",
+            color: "var(--background)",
+          }}
+        >
           <Link href="/admin/products/new">
             <Plus className="h-4 w-4 mr-1" />
-            Nova peça
+            Nova peca
           </Link>
         </Button>
       </div>
@@ -66,42 +102,60 @@ export function ProductsList() {
       {/* Filters */}
       <div className="space-y-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
+            style={{ color: "var(--text-aux)" }}
+          />
           <Input
             placeholder="Buscar por nome ou marca..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            style={{
+              backgroundColor: "var(--background-aux)",
+              borderColor: "var(--highlight-blur)",
+              color: "var(--text)",
+            }}
           />
         </div>
 
         <div className="flex gap-2">
-          <Select
-            value={statusFilter}
-            onValueChange={(value) =>
-              setStatusFilter(value as ProductStatus | "all")
-            }
-          >
-            <SelectTrigger className="flex-1">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger
+              className="flex-1"
+              style={{
+                backgroundColor: "var(--background-aux)",
+                borderColor: "var(--highlight-blur)",
+                color: "var(--text)",
+              }}
+            >
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
-              <SelectItem value="available">Disponível</SelectItem>
-              <SelectItem value="reserved">Reservada</SelectItem>
+              <SelectItem value="draft">Rascunho</SelectItem>
+              <SelectItem value="active">Disponivel</SelectItem>
               <SelectItem value="sold">Vendida</SelectItem>
+              <SelectItem value="archived">Arquivada</SelectItem>
             </SelectContent>
           </Select>
 
-          <Select value={dropFilter} onValueChange={setDropFilter}>
-            <SelectTrigger className="flex-1">
+          <Select value={collectionFilter} onValueChange={setCollectionFilter}>
+            <SelectTrigger
+              className="flex-1"
+              style={{
+                backgroundColor: "var(--background-aux)",
+                borderColor: "var(--highlight-blur)",
+                color: "var(--text)",
+              }}
+            >
               <SelectValue placeholder="Drop" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os drops</SelectItem>
-              {drops.map((drop) => (
-                <SelectItem key={drop.id} value={drop.id}>
-                  {drop.name}
+              {collections.map((collection) => (
+                <SelectItem key={collection.id} value={collection.id}>
+                  {collection.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -110,66 +164,96 @@ export function ProductsList() {
       </div>
 
       {/* Results count */}
-      <p className="text-sm text-muted-foreground font-serif">
-        {filteredProducts.length}{" "}
-        {filteredProducts.length === 1
-          ? "peça encontrada"
-          : "peças encontradas"}
+      <p className="text-sm font-serif" style={{ color: "var(--text-aux)" }}>
+        {total} {total === 1 ? "peca encontrada" : "pecas encontradas"}
       </p>
 
-      {/* Products Grid (Cards for mobile) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {filteredProducts.map((product) => {
-          const drop = getDropById(product.dropId);
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2
+            className="h-8 w-8 animate-spin"
+            style={{ color: "var(--button)" }}
+          />
+        </div>
+      )}
 
-          return (
-            <Card key={product.id} className="overflow-hidden p-0">
+      {/* Products Grid */}
+      {!isLoading && (
+        <div className="space-y-3">
+          {products.map((product) => (
+            <Card
+              key={product.id}
+              className="overflow-hidden border-0 shadow-sm"
+              style={{ backgroundColor: "var(--background)" }}
+            >
               <CardContent className="p-0">
-                <div className="flex gap-3 p-3 flex-col">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col md:flex-row items-start gap-2">
-                      <div className="w-full h-40 md:w-24 md:h-24 rounded-lg overflow-hidden bg-secondary shrink-0">
-                        <img
-                          src={product.images[0] || "/placeholder.svg"}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold text-foreground truncate">
-                          {product.name}
-                        </h3>
-                        <p className="text-xs text-muted-foreground font-serif">
-                          {product.brand} • Tam. {product.size}
-                        </p>
-                        <p className="text-xs font-bold text-foreground whitespace-nowrap">
-                          {formatCurrency(product.price)} •{" "}
-                          <StatusBadge
-                              variant={getProductStatusVariant(product.status)}
-                            >
-                              {productStatusLabels[product.status]}
-                            </StatusBadge>
-                        </p>
+                <div className="flex gap-3 p-3">
+                  {/* Image */}
+                  <div
+                    className="w-20 h-20 rounded-lg overflow-hidden shrink-0"
+                    style={{ backgroundColor: "var(--background-aux)" }}
+                  >
+                    <img
+                      src={product.images?.[0] || "/placeholder.svg"}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-                        <div className="flex items-center justify-between md:mt-2">
-                          <div className="flex items-center gap-2 md:flex-row flex-col">
-                            
-                            {/* {drop && (
-                              <span className="text-xs text-muted-foreground font-serif">
-                                {drop.name}
-                              </span>
-                            )} */}
-                          </div>
-                        </div>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3
+                          className="text-sm font-semibold truncate"
+                          style={{ color: "var(--text)" }}
+                        >
+                          {product.title}
+                        </h3>
+                        <p
+                          className="text-xs font-serif"
+                          style={{ color: "var(--text-aux)" }}
+                        >
+                          {product.brand || "Sem marca"} • Tam.{" "}
+                          {product.size || "N/A"}
+                        </p>
+                      </div>
+                      <p
+                        className="text-sm font-bold whitespace-nowrap"
+                        style={{ color: "var(--text)" }}
+                      >
+                        {formatCurrency(product.sell_price)}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center gap-2">
+                        <StatusBadge
+                          variant={getProductStatusVariant(product.status)}
+                        >
+                          {productStatusLabels[product.status] ||
+                            product.status}
+                        </StatusBadge>
+                        {product.collection && (
+                          <span
+                            className="text-xs font-serif"
+                            style={{ color: "var(--text-aux)" }}
+                          >
+                            {product.collection.name}
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-3 md:flex-row flex-col w-full">
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 mt-3">
                       <Button
                         asChild
                         variant="outline"
                         size="sm"
-                        className="flex-1 bg-transparent w-full rounded p-2"
+                        className="flex-1 bg-transparent"
+                        style={{ borderColor: "var(--highlight-blur)" }}
                       >
                         <Link href={`/admin/products/${product.id}`}>
                           <Eye className="h-3 w-3 mr-1" />
@@ -178,9 +262,12 @@ export function ProductsList() {
                       </Button>
                       <Button
                         asChild
-                        variant="secondary"
                         size="sm"
-                        className="flex-1 w-full rounded p-2"
+                        className="flex-1"
+                        style={{
+                          backgroundColor: "var(--background-aux)",
+                          color: "var(--text)",
+                        }}
                       >
                         <Link href={`/admin/products/${product.id}/edit`}>
                           <Pencil className="h-3 w-3 mr-1" />
@@ -192,17 +279,17 @@ export function ProductsList() {
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+          ))}
 
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground font-serif">
-              Nenhuma peça encontrada
-            </p>
-          </div>
-        )}
-      </div>
+          {products.length === 0 && (
+            <div className="text-center py-12">
+              <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+                Nenhuma peca encontrada
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React from "react"
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -12,68 +12,55 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { FormSection } from "@/components/admin/form-section";
-import { ArrowLeft, Save } from "lucide-react";
-import type { Drop } from "@/lib/mock-data";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { collectionsApi, type Collection } from "@/lib/api";
 
 interface DropFormProps {
-  drop?: Drop;
+  drop?: Collection;
   isEditing?: boolean;
 }
 
 export function DropForm({ drop, isEditing = false }: DropFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   // Form state
   const [name, setName] = useState(drop?.name || "");
-  const [slug, setSlug] = useState(drop?.slug || "");
   const [description, setDescription] = useState(drop?.description || "");
-  const [launchDate, setLaunchDate] = useState("");
-  const [launchTime, setLaunchTime] = useState("");
-  const [isActive, setIsActive] = useState(drop?.isActive ?? false);
+  const [isActive, setIsActive] = useState(drop?.is_active ?? false);
 
-  // Initialize date/time from drop
-  useEffect(() => {
-    if (drop?.launchDate) {
-      const date = new Date(drop.launchDate);
-      setLaunchDate(date.toISOString().split("T")[0]);
-      setLaunchTime(date.toTimeString().slice(0, 5));
-    }
-  }, [drop]);
-
-  // Auto-generate slug from name
-  useEffect(() => {
-    if (!isEditing && name) {
-      const generatedSlug = name
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      setSlug(generatedSlug);
-    }
-  }, [name, isEditing]);
+  // Auto-generate slug preview
+  const slug = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError("");
 
-    // Combine date and time
-    const launchDateTime = new Date(`${launchDate}T${launchTime || "00:00"}`);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    console.log({
-      name,
-      slug,
-      description,
-      launchDate: launchDateTime.toISOString(),
-      isActive,
-    });
-
-    setIsSubmitting(false);
-    router.push("/admin/drops");
+    try {
+      if (isEditing && drop) {
+        await collectionsApi.update(drop.id, { name, description });
+        if (drop.is_active !== isActive) {
+          await collectionsApi.toggle(drop.id);
+        }
+      } else {
+        const newCollection = await collectionsApi.create({ name, description });
+        if (isActive) {
+          await collectionsApi.toggle(newCollection.id);
+        }
+      }
+      router.push("/admin/drops");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar drop");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -82,52 +69,81 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
       <div className="flex items-center gap-3">
         <Button asChild variant="ghost" size="icon">
           <Link href="/admin/drops">
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" style={{ color: "var(--text)" }} />
           </Link>
         </Button>
-        <h1 className="text-xl font-bold text-foreground">
+        <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
           {isEditing ? "Editar drop" : "Novo drop"}
         </h1>
       </div>
 
+      {error && (
+        <div
+          className="p-3 rounded-lg text-sm"
+          style={{
+            backgroundColor: "var(--button)",
+            color: "var(--background)",
+          }}
+        >
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
-        <Card>
+        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
           <CardContent className="p-4">
-            <FormSection title="Informações do drop">
+            <FormSection title="Informacoes do drop">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome do drop *</Label>
+                  <Label htmlFor="name" style={{ color: "var(--text)" }}>
+                    Nome do drop *
+                  </Label>
                   <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Ex: Verão 2026"
+                    placeholder="Ex: Verao 2026"
                     required
+                    style={{
+                      backgroundColor: "var(--background-aux)",
+                      borderColor: "var(--highlight-blur)",
+                      color: "var(--text)",
+                    }}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Slug (URL)</Label>
-                  <Input
-                    id="slug"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="verao-2026"
-                  />
-                  <p className="text-xs text-muted-foreground font-serif">
-                    URL: /drops/{slug || "slug-do-drop"}
+                  <Label style={{ color: "var(--text)" }}>Slug (URL)</Label>
+                  <p
+                    className="text-sm p-2 rounded"
+                    style={{
+                      backgroundColor: "var(--background-aux)",
+                      color: "var(--text-aux)",
+                    }}
+                  >
+                    /drops/{slug || "slug-do-drop"}
+                  </p>
+                  <p className="text-xs font-serif" style={{ color: "var(--text-aux)" }}>
+                    Gerado automaticamente a partir do nome
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Descrição</Label>
+                  <Label htmlFor="description" style={{ color: "var(--text)" }}>
+                    Descricao
+                  </Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Descreva o drop..."
                     rows={3}
+                    style={{
+                      backgroundColor: "var(--background-aux)",
+                      borderColor: "var(--highlight-blur)",
+                      color: "var(--text)",
+                    }}
                   />
                 </div>
               </div>
@@ -135,70 +151,57 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
           </CardContent>
         </Card>
 
-        {/* Launch Settings */}
-        <Card>
+        {/* Status */}
+        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
           <CardContent className="p-4">
-            <FormSection
-              title="Lançamento"
-              description="Configure quando o drop será disponibilizado"
-            >
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="launchDate">Data *</Label>
-                    <Input
-                      id="launchDate"
-                      type="date"
-                      value={launchDate}
-                      onChange={(e) => setLaunchDate(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="launchTime">Horário</Label>
-                    <Input
-                      id="launchTime"
-                      type="time"
-                      value={launchTime}
-                      onChange={(e) => setLaunchTime(e.target.value)}
-                    />
-                  </div>
+            <FormSection title="Status" description="Configure a visibilidade do drop">
+              <div
+                className="flex items-center justify-between p-4 rounded-lg"
+                style={{ backgroundColor: "var(--background-aux)" }}
+              >
+                <div className="space-y-0.5">
+                  <Label
+                    htmlFor="isActive"
+                    className="text-sm font-medium"
+                    style={{ color: "var(--text)" }}
+                  >
+                    Drop ativo
+                  </Label>
+                  <p className="text-xs font-serif" style={{ color: "var(--text-aux)" }}>
+                    Drops ativos aparecem na loja
+                  </p>
                 </div>
-
-                <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="isActive" className="text-sm font-medium">
-                      Drop ativo
-                    </Label>
-                    <p className="text-xs text-muted-foreground font-serif">
-                      Drops ativos aparecem na loja
-                    </p>
-                  </div>
-                  <Switch
-                    id="isActive"
-                    checked={isActive}
-                    onCheckedChange={setIsActive}
-                  />
-                </div>
+                <Switch id="isActive" checked={isActive} onCheckedChange={setIsActive} />
               </div>
             </FormSection>
           </CardContent>
         </Card>
 
         {/* Submit Button */}
-        <div className="sticky bottom-20 bg-background pt-4 pb-2">
+        <div
+          className="sticky bottom-20 pt-4 pb-2"
+          style={{ backgroundColor: "var(--background)" }}
+        >
           <Button
             type="submit"
             className="w-full h-12 text-base"
             disabled={isSubmitting}
+            style={{
+              backgroundColor: "var(--button)",
+              color: "var(--background)",
+            }}
           >
-            <Save className="h-5 w-5 mr-2" />
-            {isSubmitting
-              ? "Salvando..."
-              : isEditing
-                ? "Salvar alterações"
-                : "Criar drop"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5 mr-2" />
+                {isEditing ? "Salvar alteracoes" : "Criar drop"}
+              </>
+            )}
           </Button>
         </div>
       </form>

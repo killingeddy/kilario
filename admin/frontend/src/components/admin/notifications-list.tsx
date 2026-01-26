@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -10,38 +10,53 @@ import {
   Package,
   CheckCheck,
   Circle,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
-import { notifications, type Notification } from "@/lib/mock-data";
+import { notificationsApi, type Notification } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export function NotificationsList() {
-  const [notifs, setNotifs] = useState(notifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const unreadCount = notifs.filter((n) => !n.isRead).length;
+  useEffect(() => {
+    notificationsApi
+      .list()
+      .then((res) => {
+        setNotifications(res.data || []);
+        setUnreadCount(res.unreadCount || 0);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const getIcon = (type: Notification["type"]) => {
     switch (type) {
-      case "sale":
+      case "order":
         return ShoppingBag;
       case "delivery":
         return Truck;
-      case "stock":
+      case "product":
         return Package;
+      case "system":
+        return AlertCircle;
       default:
         return Bell;
     }
   };
 
-  const getIconColor = (type: Notification["type"]) => {
+  const getIconColors = (type: Notification["type"]) => {
     switch (type) {
-      case "sale":
-        return "text-green-600 bg-green-100";
+      case "order":
+        return { bg: "rgba(34, 197, 94, 0.1)", color: "rgb(34, 197, 94)" };
       case "delivery":
-        return "text-amber-600 bg-amber-100";
-      case "stock":
-        return "text-blue-600 bg-blue-100";
+        return { bg: "rgba(245, 158, 11, 0.1)", color: "rgb(245, 158, 11)" };
+      case "product":
+        return { bg: "rgba(59, 130, 246, 0.1)", color: "rgb(59, 130, 246)" };
       default:
-        return "text-primary bg-primary/10";
+        return { bg: "var(--highlight-blur)", color: "var(--button)" };
     }
   };
 
@@ -52,10 +67,10 @@ export function NotificationsList() {
 
     if (diffInHours < 1) {
       const diffInMinutes = Math.floor(diffInHours * 60);
-      return `${diffInMinutes} min atrás`;
+      return `${diffInMinutes} min atras`;
     }
     if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h atrás`;
+      return `${Math.floor(diffInHours)}h atras`;
     }
     return date.toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -65,30 +80,64 @@ export function NotificationsList() {
     });
   };
 
-  const markAsRead = (id: string) => {
-    setNotifs((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
-    );
+  const markAsRead = async (id: string) => {
+    try {
+      await notificationsApi.markAsRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifs((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  const markAllAsRead = async () => {
+    try {
+      await notificationsApi.markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2
+          className="h-8 w-8 animate-spin"
+          style={{ color: "var(--button)" }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Notificações</h1>
+          <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
+            Notificacoes
+          </h1>
           {unreadCount > 0 && (
-            <p className="text-sm text-muted-foreground font-serif mt-0.5">
-              {unreadCount} {unreadCount === 1 ? "não lida" : "não lidas"}
+            <p
+              className="text-sm font-serif mt-0.5"
+              style={{ color: "var(--text-aux)" }}
+            >
+              {unreadCount} {unreadCount === 1 ? "nao lida" : "nao lidas"}
             </p>
           )}
         </div>
         {unreadCount > 0 && (
-          <Button variant="outline" size="sm" onClick={markAllAsRead}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={markAllAsRead}
+            className="bg-transparent"
+            style={{ borderColor: "var(--highlight-blur)" }}
+          >
             <CheckCheck className="h-4 w-4 mr-1" />
             Marcar todas
           </Button>
@@ -97,29 +146,35 @@ export function NotificationsList() {
 
       {/* Notifications List */}
       <div className="space-y-2">
-        {notifs.map((notification) => {
+        {notifications.map((notification) => {
           const Icon = getIcon(notification.type);
-          const iconColor = getIconColor(notification.type);
+          const iconColors = getIconColors(notification.type);
 
           return (
             <Card
               key={notification.id}
               className={cn(
-                "transition-colors cursor-pointer",
-                !notification.isRead && "bg-accent/5 border-accent/30",
+                "transition-opacity cursor-pointer border-0 shadow-sm",
+                !notification.is_read && "ring-1",
               )}
-              onClick={() => markAsRead(notification.id)}
+              style={{
+                backgroundColor: "var(--background)",
+              }}
+              onClick={() =>
+                !notification.is_read && markAsRead(notification.id)
+              }
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   {/* Icon */}
                   <div
-                    className={cn(
-                      "flex items-center justify-center h-10 w-10 rounded-full shrink-0",
-                      iconColor,
-                    )}
+                    className="flex items-center justify-center h-10 w-10 rounded-full shrink-0"
+                    style={{ backgroundColor: iconColors.bg }}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon
+                      className="h-5 w-5"
+                      style={{ color: iconColors.color }}
+                    />
                   </div>
 
                   {/* Content */}
@@ -127,21 +182,34 @@ export function NotificationsList() {
                     <div className="flex items-start justify-between gap-2">
                       <p
                         className={cn(
-                          "text-sm text-foreground",
-                          !notification.isRead && "font-semibold",
+                          "text-sm",
+                          !notification.is_read && "font-semibold",
                         )}
+                        style={{ color: "var(--text)" }}
                       >
                         {notification.title}
                       </p>
-                      {!notification.isRead && (
-                        <Circle className="h-2 w-2 fill-primary text-primary shrink-0 mt-1.5" />
+                      {!notification.is_read && (
+                        <Circle
+                          className="h-2 w-2 shrink-0 mt-1.5"
+                          style={{
+                            fill: "var(--button)",
+                            color: "var(--button)",
+                          }}
+                        />
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground font-serif mt-0.5">
+                    <p
+                      className="text-xs font-serif mt-0.5"
+                      style={{ color: "var(--text-aux)" }}
+                    >
                       {notification.message}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatDate(notification.createdAt)}
+                    <p
+                      className="text-xs mt-1"
+                      style={{ color: "var(--text-aux)" }}
+                    >
+                      {formatDate(notification.created_at)}
                     </p>
                   </div>
                 </div>
@@ -150,11 +218,14 @@ export function NotificationsList() {
           );
         })}
 
-        {notifs.length === 0 && (
+        {notifications.length === 0 && (
           <div className="text-center py-12">
-            <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground font-serif">
-              Nenhuma notificação
+            <Bell
+              className="h-12 w-12 mx-auto mb-3"
+              style={{ color: "var(--text-aux)" }}
+            />
+            <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+              Nenhuma notificacao
             </p>
           </div>
         )}

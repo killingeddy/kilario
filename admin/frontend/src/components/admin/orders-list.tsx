@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,27 +15,66 @@ import {
   StatusBadge,
   getOrderStatusVariant,
 } from "@/components/admin/status-badge";
-import { Search, ShoppingBag, ChevronRight } from "lucide-react";
-import {
-  orders,
-  orderStatusLabels,
-  paymentMethodLabels,
-  type OrderStatus,
-} from "@/lib/mock-data";
+import { Search, ShoppingBag, ChevronRight, Loader2 } from "lucide-react";
+import { ordersApi, type Order } from "@/lib/api";
+
+const orderStatusLabels: Record<string, string> = {
+  pending: "Pendente",
+  paid: "Pago",
+  shipped: "Enviado",
+  delivered: "Entregue",
+  cancelled: "Cancelado",
+};
+
+const paymentMethodLabels: Record<string, string> = {
+  pix: "PIX",
+  credit_card: "Cartao de Credito",
+  debit_card: "Cartao de Debito",
+  boleto: "Boleto",
+  cash: "Dinheiro",
+};
 
 export function OrdersList() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [total, setTotal] = useState(0);
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      order.id.includes(search);
-    const matchesStatus =
-      statusFilter === "all" || order.status === statusFilter;
+  useEffect(() => {
+    async function loadOrders() {
+      try {
+        const res = await ordersApi.list({
+          status: statusFilter !== "all" ? statusFilter : undefined,
+        });
+        let data = res.data || [];
 
-    return matchesSearch && matchesStatus;
-  });
+        // Client-side search filtering
+        if (search) {
+          const searchLower = search.toLowerCase();
+          data = data.filter(
+            (order) =>
+              order.customer_name.toLowerCase().includes(searchLower) ||
+              order.id.includes(search),
+          );
+        }
+
+        setOrders(data);
+        setTotal(res.total || data.length);
+      } catch (error) {
+        console.error("Error loading orders:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    const debounce = setTimeout(() => {
+      setIsLoading(true);
+      loadOrders();
+    }, 300);
+
+    return () => clearTimeout(debounce);
+  }, [search, statusFilter]);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString("pt-BR", {
@@ -53,113 +92,171 @@ export function OrdersList() {
     });
   };
 
-  const totalRevenue = filteredOrders
-    .filter((o) => o.status === "paid")
+  const totalRevenue = orders
+    .filter((o) => o.status === "paid" || o.status === "delivered")
     .reduce((sum, o) => sum + o.total, 0);
 
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">Vendas</h1>
+        <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
+          Vendas
+        </h1>
       </div>
 
       {/* Stats */}
       <div className="flex gap-4 text-sm">
-        <span className="text-muted-foreground font-serif">
-          {filteredOrders.length} pedidos • {formatCurrency(totalRevenue)} em
-          vendas
+        <span className="font-serif" style={{ color: "var(--text-aux)" }}>
+          {total} pedidos • {formatCurrency(totalRevenue)} em vendas
         </span>
       </div>
 
       {/* Filters */}
       <div className="space-y-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
+            style={{ color: "var(--text-aux)" }}
+          />
           <Input
             placeholder="Buscar por cliente ou pedido..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            style={{
+              backgroundColor: "var(--background-aux)",
+              borderColor: "var(--highlight-blur)",
+              color: "var(--text)",
+            }}
           />
         </div>
 
-        <Select
-          value={statusFilter}
-          onValueChange={(value) =>
-            setStatusFilter(value as OrderStatus | "all")
-          }
-        >
-          <SelectTrigger>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger
+            style={{
+              backgroundColor: "var(--background-aux)",
+              borderColor: "var(--highlight-blur)",
+              color: "var(--text)",
+            }}
+          >
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
             <SelectItem value="pending">Pendente</SelectItem>
             <SelectItem value="paid">Pago</SelectItem>
-            <SelectItem value="refunded">Reembolsado</SelectItem>
+            <SelectItem value="shipped">Enviado</SelectItem>
+            <SelectItem value="delivered">Entregue</SelectItem>
+            <SelectItem value="cancelled">Cancelado</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2
+            className="h-8 w-8 animate-spin"
+            style={{ color: "var(--button)" }}
+          />
+        </div>
+      )}
+
       {/* Orders List */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredOrders.map((order) => (
-          <Link key={order.id} href={`/admin/orders/${order.id}`}>
-            <Card className="hover:bg-secondary/50 transition-colors">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="flex items-center justify-center h-10 w-10 rounded-full bg-accent/20 shrink-0">
-                      <ShoppingBag className="h-5 w-5 text-accent-foreground" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground truncate">
-                        {order.customerName}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-serif mt-0.5">
-                        Pedido #{order.id} • {formatDate(order.createdAt)}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <StatusBadge
-                          variant={getOrderStatusVariant(order.status)}
+      {!isLoading && (
+        <div className="space-y-3">
+          {orders.map((order) => (
+            <Link key={order.id} href={`/admin/orders/${order.id}`}>
+              <Card
+                className="transition-opacity hover:opacity-80 border-0 shadow-sm"
+                style={{ backgroundColor: "var(--background)" }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div
+                        className="flex items-center justify-center h-10 w-10 rounded-full shrink-0"
+                        style={{ backgroundColor: "var(--highlight-blur)" }}
+                      >
+                        <ShoppingBag
+                          className="h-5 w-5"
+                          style={{ color: "var(--text)" }}
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p
+                          className="text-sm font-semibold truncate"
+                          style={{ color: "var(--text)" }}
                         >
-                          {orderStatusLabels[order.status]}
-                        </StatusBadge>
-                        <span className="text-xs text-muted-foreground font-serif">
-                          {paymentMethodLabels[order.paymentMethod]}
-                        </span>
+                          {order.customer_name}
+                        </p>
+                        <p
+                          className="text-xs font-serif mt-0.5"
+                          style={{ color: "var(--text-aux)" }}
+                        >
+                          Pedido #{order.id.slice(0, 8)} •{" "}
+                          {formatDate(order.created_at)}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <StatusBadge
+                            variant={getOrderStatusVariant(order.status)}
+                          >
+                            {orderStatusLabels[order.status] || order.status}
+                          </StatusBadge>
+                          {order.payment_method && (
+                            <span
+                              className="text-xs font-serif"
+                              style={{ color: "var(--text-aux)" }}
+                            >
+                              {paymentMethodLabels[order.payment_method] ||
+                                order.payment_method}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-foreground">
-                        {formatCurrency(order.total)}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-serif">
-                        {order.items.length}{" "}
-                        {order.items.length === 1 ? "item" : "itens"}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <p
+                          className="text-sm font-bold"
+                          style={{ color: "var(--text)" }}
+                        >
+                          {formatCurrency(order.total)}
+                        </p>
+                        <p
+                          className="text-xs font-serif"
+                          style={{ color: "var(--text-aux)" }}
+                        >
+                          {order.items?.length || 0}{" "}
+                          {(order.items?.length || 0) === 1 ? "item" : "itens"}
+                        </p>
+                      </div>
+                      <ChevronRight
+                        className="h-4 w-4"
+                        style={{ color: "var(--text-aux)" }}
+                      />
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
 
-        {filteredOrders.length === 0 && (
-          <div className="text-center py-12">
-            <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground font-serif">
-              Nenhum pedido encontrado
-            </p>
-          </div>
-        )}
-      </div>
+          {orders.length === 0 && (
+            <div className="text-center py-12">
+              <ShoppingBag
+                className="h-12 w-12 mx-auto mb-3"
+                style={{ color: "var(--text-aux)" }}
+              />
+              <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+                Nenhum pedido encontrado
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

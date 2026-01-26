@@ -79,8 +79,8 @@ export default function AdminLayout({
     );
   }
 
-  console.log('isAuthenticated', isAuthenticated);
-  
+  console.log("isAuthenticated", isAuthenticated);
+
   if (!isAuthenticated) {
     return null;
   }
@@ -142,28 +142,14 @@ export default function AdminLayout({
       className="min-h-screen"
       style={{ backgroundColor: "var(--background)" }}
     >
-      {/* Mobile Header */}
       <header
-        className="sticky top-0 z-50 flex items-center justify-between h-14 px-4 border-b"
+        className="sticky top-0 z-50 flex items-center h-14 px-4 border-b gap-2"
         style={{
           backgroundColor: "var(--background)",
           borderColor: "var(--highlight-blur)",
         }}
       >
-        <h1 className="text-lg font-bold" style={{ color: "var(--text)" }}>
-          Brecho Admin
-        </h1>
-
         <div className="flex items-center gap-2">
-          {user && (
-            <span
-              className="text-sm hidden sm:block"
-              style={{ color: "var(--text-aux)" }}
-            >
-              {user.name}
-            </span>
-          )}
-
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
@@ -182,7 +168,7 @@ export default function AdminLayout({
               </Button>
             </SheetTrigger>
             <SheetContent
-              side="right"
+              side="left"
               className="w-72 p-0"
               style={{ backgroundColor: "var(--background)" }}
             >
@@ -196,13 +182,6 @@ export default function AdminLayout({
                 >
                   Menu
                 </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <X className="h-5 w-5" style={{ color: "var(--text)" }} />
-                </Button>
               </div>
               <div className="p-4">
                 <NavLinks onClose={() => setIsOpen(false)} />
@@ -210,9 +189,11 @@ export default function AdminLayout({
             </SheetContent>
           </Sheet>
         </div>
+        <h1 className="text-lg font-bold" style={{ color: "var(--text)" }}>
+          Kilariô Admin
+        </h1>
       </header>
 
-      {/* Main Content */}
       <main className="pb-20">{children}</main>
 
       {/* Bottom Navigation (Mobile) */}

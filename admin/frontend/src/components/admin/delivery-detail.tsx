@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   StatusBadge,
   getDeliveryStatusVariant,
@@ -17,36 +23,51 @@ import {
   FileText,
   CheckCircle,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
-import { deliveries, deliveryStatusLabels } from "@/lib/mock-data";
+import { deliveriesApi, type Delivery } from "@/lib/api";
+
+const deliveryStatusLabels: Record<string, string> = {
+  pending: "Pendente",
+  scheduled: "Agendada",
+  in_transit: "Em transito",
+  delivered: "Entregue",
+  failed: "Falhou",
+};
 
 interface DeliveryDetailProps {
   id: string;
 }
 
 export function DeliveryDetail({ id }: DeliveryDetailProps) {
-  const [isMarking, setIsMarking] = useState(false);
-  const delivery = deliveries.find((d) => d.id === id);
+  const [delivery, setDelivery] = useState<Delivery | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  if (!delivery) {
-    return (
-      <div className="p-4">
-        <div className="flex items-center gap-3 mb-6">
-          <Button asChild variant="ghost" size="icon">
-            <Link href="/admin/deliveries">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          </Button>
-          <h1 className="text-xl font-bold text-foreground">
-            Entrega não encontrada
-          </h1>
-        </div>
-        <p className="text-muted-foreground font-serif">
-          A entrega que você está procurando não existe ou foi removida.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    deliveriesApi
+      .get(id)
+      .then(setDelivery)
+      .catch(() => setDelivery(null))
+      .finally(() => setIsLoading(false));
+  }, [id]);
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!delivery) return;
+
+    setIsUpdating(true);
+    try {
+      const updated = await deliveriesApi.updateStatus(id, newStatus);
+      setDelivery(updated);
+    } catch (error) {
+      console.error("Error updating delivery status:", error);
+      alert("Erro ao atualizar status");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleMarkAsDelivered = () => handleStatusChange("delivered");
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -58,28 +79,49 @@ export function DeliveryDetail({ id }: DeliveryDetailProps) {
     });
   };
 
-  const formatAddress = (address: typeof delivery.address) => {
-    return `${address.street}, ${address.number}${address.complement ? ` - ${address.complement}` : ""}`;
-  };
-
   const getGoogleMapsUrl = () => {
-    const address = `${delivery.address.street}, ${delivery.address.number}, ${delivery.address.neighborhood}, ${delivery.address.city}, ${delivery.address.state}`;
+    if (!delivery?.order?.address) return "#";
+    const addr = delivery.order.address;
+    const address = `${addr.street}, ${addr.number}, ${addr.neighborhood}, ${addr.city}, ${addr.state}`;
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   };
 
   const getWhatsAppUrl = () => {
-    const phone = delivery.customerPhone.replace(/\D/g, "");
+    if (!delivery?.order?.customer_phone) return "#";
+    const phone = delivery.order.customer_phone.replace(/\D/g, "");
     return `https://wa.me/55${phone}`;
   };
 
-  const handleMarkAsDelivered = async () => {
-    setIsMarking(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // In a real app, this would update the delivery status
-    console.log("Marking delivery as delivered:", delivery.id);
-    setIsMarking(false);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2
+          className="h-8 w-8 animate-spin"
+          style={{ color: "var(--button)" }}
+        />
+      </div>
+    );
+  }
+
+  if (!delivery) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center gap-3 mb-6">
+          <Button asChild variant="ghost" size="icon">
+            <Link href="/admin/deliveries">
+              <ArrowLeft className="h-5 w-5" style={{ color: "var(--text)" }} />
+            </Link>
+          </Button>
+          <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
+            Entrega nao encontrada
+          </h1>
+        </div>
+        <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+          A entrega que voce esta procurando nao existe ou foi removida.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">
@@ -87,41 +129,62 @@ export function DeliveryDetail({ id }: DeliveryDetailProps) {
       <div className="flex items-center gap-3">
         <Button asChild variant="ghost" size="icon">
           <Link href="/admin/deliveries">
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" style={{ color: "var(--text)" }} />
           </Link>
         </Button>
         <div>
-          <h1 className="text-xl font-bold text-foreground">
-            Entrega #{delivery.id}
+          <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
+            Entrega #{delivery.id.slice(0, 8)}
           </h1>
-          <p className="text-xs text-muted-foreground font-serif">
-            Pedido #{delivery.orderId}
+          <p className="text-xs font-serif" style={{ color: "var(--text-aux)" }}>
+            Pedido #{delivery.order_id.slice(0, 8)}
           </p>
         </div>
       </div>
 
       {/* Status Card */}
-      <Card>
+      <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground font-serif">Status</p>
-              <div className="mt-1">
-                <StatusBadge
-                  variant={getDeliveryStatusVariant(delivery.status)}
+            <div className="space-y-2">
+              <p className="text-sm font-serif" style={{ color: "var(--text-aux)" }}>
+                Status
+              </p>
+              <Select
+                value={delivery.status}
+                onValueChange={handleStatusChange}
+                disabled={isUpdating}
+              >
+                <SelectTrigger
+                  className="w-40"
+                  style={{
+                    backgroundColor: "var(--background-aux)",
+                    borderColor: "var(--highlight-blur)",
+                    color: "var(--text)",
+                  }}
                 >
-                  {deliveryStatusLabels[delivery.status]}
-                </StatusBadge>
-              </div>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="scheduled">Agendada</SelectItem>
+                  <SelectItem value="in_transit">Em transito</SelectItem>
+                  <SelectItem value="delivered">Entregue</SelectItem>
+                  <SelectItem value="failed">Falhou</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            {delivery.scheduledDate && (
+            {delivery.scheduled_date && (
               <div className="text-right">
-                <p className="text-sm text-muted-foreground font-serif">
+                <p className="text-sm font-serif" style={{ color: "var(--text-aux)" }}>
                   Agendada para
                 </p>
-                <p className="text-sm font-medium text-foreground flex items-center gap-1 mt-1">
+                <p
+                  className="text-sm font-medium flex items-center gap-1 mt-1"
+                  style={{ color: "var(--text)" }}
+                >
                   <Calendar className="h-4 w-4" />
-                  {formatDate(delivery.scheduledDate)}
+                  {formatDate(delivery.scheduled_date)}
                 </p>
               </div>
             )}
@@ -130,76 +193,106 @@ export function DeliveryDetail({ id }: DeliveryDetailProps) {
       </Card>
 
       {/* Customer Info */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Cliente</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-0 space-y-3">
-          <p className="text-sm font-semibold text-foreground">
-            {delivery.customerName}
-          </p>
+      {delivery.order && (
+        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base" style={{ color: "var(--text)" }}>
+              Cliente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-3">
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+              {delivery.order.customer_name}
+            </p>
 
-          <a
-            href={getWhatsAppUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
-          >
-            <span className="flex items-center gap-2 text-sm text-foreground">
-              <Phone className="h-4 w-4" />
-              {delivery.customerPhone}
-            </span>
-            <ExternalLink className="h-4 w-4 text-muted-foreground" />
-          </a>
-        </CardContent>
-      </Card>
+            {delivery.order.customer_phone && (
+              <a
+                href={getWhatsAppUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-3 rounded-lg transition-opacity hover:opacity-80"
+                style={{ backgroundColor: "var(--background-aux)" }}
+              >
+                <span
+                  className="flex items-center gap-2 text-sm"
+                  style={{ color: "var(--text)" }}
+                >
+                  <Phone className="h-4 w-4" />
+                  {delivery.order.customer_phone}
+                </span>
+                <ExternalLink className="h-4 w-4" style={{ color: "var(--text-aux)" }} />
+              </a>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Address */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            Endereço
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-0 space-y-3">
-          <div className="text-sm">
-            <p className="text-foreground font-medium">
-              {formatAddress(delivery.address)}
-            </p>
-            <p className="text-muted-foreground font-serif">
-              {delivery.address.neighborhood} - {delivery.address.city}/
-              {delivery.address.state}
-            </p>
-            <p className="text-muted-foreground font-serif">
-              CEP: {delivery.address.zipCode}
-            </p>
-          </div>
+      {delivery.order?.address && (
+        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
+          <CardHeader className="pb-2">
+            <CardTitle
+              className="text-base flex items-center gap-2"
+              style={{ color: "var(--text)" }}
+            >
+              <MapPin className="h-4 w-4" />
+              Endereco
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-3">
+            <div className="text-sm">
+              <p className="font-medium" style={{ color: "var(--text)" }}>
+                {delivery.order.address.street}, {delivery.order.address.number}
+                {delivery.order.address.complement &&
+                  ` - ${delivery.order.address.complement}`}
+              </p>
+              <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+                {delivery.order.address.neighborhood} -{" "}
+                {delivery.order.address.city}/{delivery.order.address.state}
+              </p>
+              <p className="font-serif" style={{ color: "var(--text-aux)" }}>
+                CEP: {delivery.order.address.zip_code}
+              </p>
+            </div>
 
-          <a
-            href={getGoogleMapsUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors text-sm text-foreground"
-          >
-            <MapPin className="h-4 w-4" />
-            Abrir no Google Maps
-            <ExternalLink className="h-4 w-4 text-muted-foreground" />
-          </a>
-        </CardContent>
-      </Card>
+            <a
+              href={getGoogleMapsUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 p-3 rounded-lg transition-opacity hover:opacity-80 text-sm"
+              style={{
+                backgroundColor: "var(--background-aux)",
+                color: "var(--text)",
+              }}
+            >
+              <MapPin className="h-4 w-4" />
+              Abrir no Google Maps
+              <ExternalLink className="h-4 w-4" style={{ color: "var(--text-aux)" }} />
+            </a>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Notes */}
       {delivery.notes && (
-        <Card>
+        <Card className="border-0 shadow-sm" style={{ backgroundColor: "var(--background)" }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle
+              className="text-base flex items-center gap-2"
+              style={{ color: "var(--text)" }}
+            >
               <FileText className="h-4 w-4" />
-              Observações
+              Observacoes
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-sm text-foreground font-serif bg-accent/10 p-3 rounded-lg">
+            <p
+              className="text-sm font-serif p-3 rounded-lg"
+              style={{
+                backgroundColor: "var(--highlight-blur)",
+                color: "var(--text)",
+              }}
+            >
               {delivery.notes}
             </p>
           </CardContent>
@@ -208,20 +301,39 @@ export function DeliveryDetail({ id }: DeliveryDetailProps) {
 
       {/* Actions */}
       {delivery.status !== "delivered" && (
-        <div className="sticky bottom-20 bg-background pt-4 pb-2 space-y-3">
+        <div
+          className="sticky bottom-20 pt-4 pb-2 space-y-3"
+          style={{ backgroundColor: "var(--background)" }}
+        >
           <Button
             onClick={handleMarkAsDelivered}
             className="w-full h-12 text-base"
-            disabled={isMarking}
+            disabled={isUpdating}
+            style={{
+              backgroundColor: "var(--button)",
+              color: "var(--background)",
+            }}
           >
-            <CheckCircle className="h-5 w-5 mr-2" />
-            {isMarking ? "Marcando..." : "Marcar como entregue"}
+            {isUpdating ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Atualizando...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-5 w-5 mr-2" />
+                Marcar como entregue
+              </>
+            )}
           </Button>
 
-          <Button asChild variant="outline" className="w-full bg-transparent">
-            <Link href={`/admin/orders/${delivery.orderId}`}>
-              Ver pedido completo
-            </Link>
+          <Button
+            asChild
+            variant="outline"
+            className="w-full bg-transparent"
+            style={{ borderColor: "var(--highlight-blur)" }}
+          >
+            <Link href={`/admin/orders/${delivery.order_id}`}>Ver pedido completo</Link>
           </Button>
         </div>
       )}
