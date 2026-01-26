@@ -1,6 +1,6 @@
-const dashboardService = require('../services/dashboard.service');
-const responses = require('../utils/responses');
-const { asyncHandler } = require('../middlewares/errorHandler');
+const dashboardService = require("../services/dashboard.service");
+const responses = require("../utils/responses");
+const { asyncHandler } = require("../middlewares/errorHandler");
 
 const dashboardController = {
   getDashboard: asyncHandler(async (req, res) => {

@@ -1,4 +1,4 @@
-const { query } = require('../database/connection');
+const { query } = require("../database/connection");
 
 const deliveryRepository = {
   async findAll({ limit, offset, status, date_from, date_to }) {
@@ -12,25 +12,25 @@ const deliveryRepository = {
       JOIN orders o ON d.order_id = o.id
       WHERE 1=1
     `;
-    
+
     const params = [];
     let paramIndex = 1;
-    
+
     if (status) {
       sql += ` AND d.status = $${paramIndex++}`;
       params.push(status);
     }
-    
+
     if (date_from) {
       sql += ` AND d.created_at >= $${paramIndex++}`;
       params.push(date_from);
     }
-    
+
     if (date_to) {
       sql += ` AND d.created_at <= $${paramIndex++}`;
       params.push(date_to);
     }
-    
+
     sql += ` ORDER BY 
       CASE d.status 
         WHEN 'pending' THEN 1 
@@ -40,10 +40,10 @@ const deliveryRepository = {
       END,
       d.scheduled_at ASC NULLS LAST,
       d.created_at DESC`;
-    
+
     sql += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
     params.push(limit, offset);
-    
+
     const result = await query(sql, params);
     return result.rows;
   },
@@ -52,22 +52,22 @@ const deliveryRepository = {
     let sql = `SELECT COUNT(*) FROM deliveries d WHERE 1=1`;
     const params = [];
     let paramIndex = 1;
-    
+
     if (status) {
       sql += ` AND d.status = $${paramIndex++}`;
       params.push(status);
     }
-    
+
     if (date_from) {
       sql += ` AND d.created_at >= $${paramIndex++}`;
       params.push(date_from);
     }
-    
+
     if (date_to) {
       sql += ` AND d.created_at <= $${paramIndex++}`;
       params.push(date_to);
     }
-    
+
     const result = await query(sql, params);
     return parseInt(result.rows[0].count, 10);
   },
@@ -95,55 +95,55 @@ const deliveryRepository = {
 
   async create(data, client = null) {
     const queryFn = client ? client.query.bind(client) : query;
-    
+
     const sql = `
       INSERT INTO deliveries (order_id, status, scheduled_at, notes)
       VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
-    
+
     const params = [
       data.order_id,
-      data.status || 'pending',
+      data.status || "pending",
       data.scheduled_at || null,
       data.notes || null,
     ];
-    
+
     const result = await queryFn(sql, params);
     return result.rows[0];
   },
 
   async updateStatus(id, status, additionalData = {}) {
-    const fields = ['status = $1', 'updated_at = NOW()'];
+    const fields = ["status = $1", "updated_at = NOW()"];
     const params = [status];
     let paramIndex = 2;
-    
+
     if (additionalData.scheduled_at !== undefined) {
       fields.push(`scheduled_at = $${paramIndex++}`);
       params.push(additionalData.scheduled_at);
     }
-    
-    if (status === 'delivered' && !additionalData.delivered_at) {
+
+    if (status === "delivered" && !additionalData.delivered_at) {
       fields.push(`delivered_at = NOW()`);
     } else if (additionalData.delivered_at) {
       fields.push(`delivered_at = $${paramIndex++}`);
       params.push(additionalData.delivered_at);
     }
-    
+
     if (additionalData.notes !== undefined) {
       fields.push(`notes = $${paramIndex++}`);
       params.push(additionalData.notes);
     }
-    
+
     params.push(id);
-    
+
     const sql = `
       UPDATE deliveries
-      SET ${fields.join(', ')}
+      SET ${fields.join(", ")}
       WHERE id = $${paramIndex}
       RETURNING *
     `;
-    
+
     const result = await query(sql, params);
     return result.rows[0];
   },

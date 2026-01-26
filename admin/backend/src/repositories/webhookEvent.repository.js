@@ -1,4 +1,4 @@
-const { query } = require('../database/connection');
+const { query } = require("../database/connection");
 
 const webhookEventRepository = {
   async findByEventId(eventId) {
@@ -9,21 +9,21 @@ const webhookEventRepository = {
 
   async create(data, client = null) {
     const queryFn = client ? client.query.bind(client) : query;
-    
+
     const sql = `
       INSERT INTO webhook_events (event_id, event_type, payload, status, processed_at)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `;
-    
+
     const params = [
       data.event_id,
       data.event_type,
       JSON.stringify(data.payload),
-      data.status || 'pending',
+      data.status || "pending",
       data.processed_at || null,
     ];
-    
+
     const result = await queryFn(sql, params);
     return result.rows[0];
   },

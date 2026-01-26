@@ -49,7 +49,7 @@ const productService = {
     
     logger.audit('PRODUCT_CREATED', adminId, {
       productId: product.id,
-      name: product.name,
+      title: product.title,
       price: product.price,
     });
     
@@ -124,7 +124,7 @@ const productService = {
     if (deleted) {
       logger.audit('PRODUCT_DELETED', adminId, {
         productId: id,
-        name: product.name,
+        title: product.title,
       });
     }
     

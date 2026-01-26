@@ -1,35 +1,32 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const adminRepository = require('../repositories/admin.repository');
-const { AppError } = require('../middlewares/errorHandler');
-const logger = require('../utils/logger');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const adminRepository = require("../repositories/admin.repository");
+const { AppError } = require("../middlewares/errorHandler");
+const logger = require("../utils/logger");
 
 const SALT_ROUNDS = 12;
 
 const authService = {
   async login(email, password) {
     const admin = await adminRepository.findByEmail(email);
-    
+
     if (!admin) {
-      logger.warn('Login attempt with invalid email', { email });
-      throw new AppError('Invalid credentials', 401);
+      logger.warn("Login attempt with invalid email", { email });
+      throw new AppError("Invalid credentials", 401);
     }
-    
+
     const isPasswordValid = await bcrypt.compare(password, admin.password);
-    
+
     if (!isPasswordValid) {
-      logger.warn('Login attempt with invalid password', { email });
-      throw new AppError('Invalid credentials', 401);
+      logger.warn("Login attempt with invalid password", { email });
+      throw new AppError("Invalid credentials", 401);
     }
-    
-    // Update last login
+
     await adminRepository.updateLastLogin(admin.id);
-    
-    // Generate token
     const token = this.generateToken(admin);
-    
-    logger.audit('ADMIN_LOGIN', admin.id, { email: admin.email });
-    
+
+    logger.audit("ADMIN_LOGIN", admin.id, { email: admin.email });
+
     return {
       token,
       admin: {
@@ -41,28 +38,24 @@ const authService = {
   },
 
   async register(name, email, password) {
-    // Check if email already exists
     const existingAdmin = await adminRepository.findByEmail(email);
-    
+
     if (existingAdmin) {
-      throw new AppError('Email already registered', 409);
+      throw new AppError("Email already registered", 409);
     }
-    
-    // Hash password
+
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    
-    // Create admin
+
     const admin = await adminRepository.create({
       name,
       email,
       password: hashedPassword,
     });
-    
-    logger.audit('ADMIN_REGISTERED', admin.id, { email: admin.email });
-    
-    // Generate token
+
+    logger.audit("ADMIN_REGISTERED", admin.id, { email: admin.email });
+
     const token = this.generateToken(admin);
-    
+
     return {
       token,
       admin: {
@@ -75,38 +68,38 @@ const authService = {
 
   async changePassword(adminId, currentPassword, newPassword) {
     const admin = await adminRepository.findByEmail(
-      (await adminRepository.findById(adminId)).email
+      (await adminRepository.findById(adminId)).email,
     );
-    
+
     if (!admin) {
-      throw new AppError('Admin not found', 404);
+      throw new AppError("Admin not found", 404);
     }
-    
-    // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, admin.password);
-    
+
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      admin.password,
+    );
+
     if (!isPasswordValid) {
-      throw new AppError('Current password is incorrect', 401);
+      throw new AppError("Current password is incorrect", 401);
     }
-    
-    // Hash new password
+
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
-    
-    // Update password
+
     await adminRepository.updatePassword(adminId, hashedPassword);
-    
-    logger.audit('PASSWORD_CHANGED', adminId);
-    
-    return { message: 'Password changed successfully' };
+
+    logger.audit("PASSWORD_CHANGED", adminId);
+
+    return { message: "Password changed successfully" };
   },
 
   async getProfile(adminId) {
     const admin = await adminRepository.findById(adminId);
-    
+
     if (!admin) {
-      throw new AppError('Admin not found', 404);
+      throw new AppError("Admin not found", 404);
     }
-    
+
     return admin;
   },
 
@@ -114,7 +107,7 @@ const authService = {
     return jwt.sign(
       { id: admin.id, email: admin.email },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
   },
 

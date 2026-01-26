@@ -11,9 +11,6 @@ async function seed() {
   try {
     await client.query("BEGIN");
 
-    /* =========================
-      ADMINS
-    ========================= */
     const adminPassword = await bcrypt.hash("admin123", SALT_ROUNDS);
 
     await client.query(
@@ -25,9 +22,6 @@ async function seed() {
       ["Administradora", "admin@brecho.com", adminPassword],
     );
 
-    /* =========================
-      CONDITIONS
-    ========================= */
     const conditionResult = await client.query(`
       INSERT INTO conditions (label, description)
       VALUES
@@ -39,9 +33,6 @@ async function seed() {
 
     const [condNew, condLikeNew, condUsed] = conditionResult.rows;
 
-    /* =========================
-      SIZES
-    ========================= */
     const sizeResult = await client.query(`
       INSERT INTO sizes (label)
       VALUES ('P'), ('M'), ('G')
@@ -50,9 +41,6 @@ async function seed() {
 
     const [sizeP, sizeM, sizeG] = sizeResult.rows;
 
-    /* =========================
-      COLLECTIONS
-    ========================= */
     const collectionResult = await client.query(`
       INSERT INTO collections (title, slug, description, is_active)
       VALUES
@@ -64,9 +52,6 @@ async function seed() {
 
     const [colSummer, colClassic, colVintage] = collectionResult.rows;
 
-    /* =========================
-      PRODUCTS
-    ========================= */
     const productResult = await client.query(
       `
       INSERT INTO products (
@@ -129,9 +114,6 @@ async function seed() {
 
     const [prodDress, prodJeans, prodBlazer, prodJacket] = productResult.rows;
 
-    /* =========================
-      PRODUCT IMAGES
-    ========================= */
     await client.query(
       `
       INSERT INTO product_images (product_id, url, position)
@@ -144,9 +126,6 @@ async function seed() {
       [prodDress.id, prodJeans.id, prodBlazer.id],
     );
 
-    /* =========================
-      USERS
-    ========================= */
     const userPassword = await bcrypt.hash("123456", SALT_ROUNDS);
 
     const userResult = await client.query(
@@ -162,9 +141,6 @@ async function seed() {
 
     const [userMaria, userAna] = userResult.rows;
 
-    /* =========================
-      ORDERS
-    ========================= */
     const orderResult = await client.query(
       `
       INSERT INTO orders (
@@ -208,9 +184,6 @@ async function seed() {
 
     const [orderPaid, orderPending] = orderResult.rows;
 
-    /* =========================
-      ORDER ITEMS
-    ========================= */
     await client.query(
       `
       INSERT INTO order_items (order_id, product_id, price)
@@ -219,9 +192,6 @@ async function seed() {
       [orderPaid.id, prodJacket.id],
     );
 
-    /* =========================
-      DELIVERIES
-    ========================= */
     await client.query(
       `
       INSERT INTO deliveries (
@@ -245,9 +215,6 @@ async function seed() {
       [orderPaid.id],
     );
 
-    /* =========================
-      NOTIFICATIONS
-    ========================= */
     await client.query(`
       INSERT INTO notifications (type, title, message)
       VALUES

@@ -1,37 +1,36 @@
-const { query } = require('../database/connection');
+const { query } = require("../database/connection");
 
 const collectionRepository = {
   async findAll({ limit, offset, is_active, search }) {
     let sql = `
       SELECT 
-        c.id, c.name, c.description, c.cover_image,
-        c.is_active, c.starts_at, c.ends_at,
-        c.created_at, c.updated_at,
+        c.id, c.title, c.description, c.slug,
+        c.is_active, c.launch_at, c.created_at,
         COUNT(p.id) as product_count,
         COUNT(CASE WHEN p.status = 'available' THEN 1 END) as available_count
       FROM collections c
       LEFT JOIN products p ON c.id = p.collection_id
       WHERE 1=1
     `;
-    
+
     const params = [];
     let paramIndex = 1;
-    
+
     if (is_active !== undefined) {
       sql += ` AND c.is_active = $${paramIndex++}`;
       params.push(is_active);
     }
-    
+
     if (search) {
-      sql += ` AND (c.name ILIKE $${paramIndex} OR c.description ILIKE $${paramIndex})`;
+      sql += ` AND (c.title ILIKE $${paramIndex} OR c.description ILIKE $${paramIndex})`;
       params.push(`%${search}%`);
       paramIndex++;
     }
-    
+
     sql += ` GROUP BY c.id ORDER BY c.created_at DESC`;
     sql += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
     params.push(limit, offset);
-    
+
     const result = await query(sql, params);
     return result.rows;
   },
@@ -40,17 +39,18 @@ const collectionRepository = {
     let sql = `SELECT COUNT(*) FROM collections c WHERE 1=1`;
     const params = [];
     let paramIndex = 1;
-    
+
     if (is_active !== undefined) {
       sql += ` AND c.is_active = $${paramIndex++}`;
       params.push(is_active);
     }
-    
+
     if (search) {
-      sql += ` AND (c.name ILIKE $${paramIndex} OR c.description ILIKE $${paramIndex})`;
+      sql += ` AND (c.title ILIKE $${paramIndex} OR c.description ILIKE $${paramIndex})`;
       params.push(`%${search}%`);
+      paramIndex++;
     }
-    
+
     const result = await query(sql, params);
     return parseInt(result.rows[0].count, 10);
   },
@@ -58,9 +58,8 @@ const collectionRepository = {
   async findById(id) {
     const sql = `
       SELECT 
-        c.id, c.name, c.description, c.cover_image,
-        c.is_active, c.starts_at, c.ends_at,
-        c.created_at, c.updated_at,
+        c.id, c.title, c.description, c.slug,
+        c.is_active, c.launch_at, c.created_at,
         COUNT(p.id) as product_count,
         COUNT(CASE WHEN p.status = 'available' THEN 1 END) as available_count,
         COUNT(CASE WHEN p.status = 'sold' THEN 1 END) as sold_count
@@ -77,16 +76,21 @@ const collectionRepository = {
     // Get collection
     const collection = await this.findById(id);
     if (!collection) return null;
-    
+
     // Get products
     const productsSql = `
-      SELECT id, name, price, status, images, size, brand
+      SELECT id, title, price, 
+        status, sizes.label as size, 
+        brand, JSON_AGG(product_images.url) as images
       FROM products
+      LEFT JOIN sizes ON products.size_id = sizes.id
+      LEFT JOIN conditions ON products.condition_id = conditions.id
+      LEFT JOIN product_images ON products.id = product_images.product_id
       WHERE collection_id = $1
       ORDER BY created_at DESC
     `;
     const productsResult = await query(productsSql, [id]);
-    
+
     return {
       ...collection,
       products: productsResult.rows,
@@ -95,20 +99,18 @@ const collectionRepository = {
 
   async create(data) {
     const sql = `
-      INSERT INTO collections (name, description, cover_image, is_active, starts_at, ends_at)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO collections (title, description, is_active, launch_at)
+      VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
-    
+
     const params = [
-      data.name,
+      data.title,
       data.description || null,
-      data.cover_image || null,
       data.is_active !== undefined ? data.is_active : true,
-      data.starts_at || null,
-      data.ends_at || null,
+      data.launch_at || null,
     ];
-    
+
     const result = await query(sql, params);
     return result.rows[0];
   },
@@ -117,30 +119,30 @@ const collectionRepository = {
     const fields = [];
     const params = [];
     let paramIndex = 1;
-    
-    const allowedFields = ['name', 'description', 'cover_image', 'is_active', 'starts_at', 'ends_at'];
-    
+
+    const allowedFields = ["title", "description", "is_active", "launch_at"];
+
     for (const field of allowedFields) {
       if (data[field] !== undefined) {
         fields.push(`${field} = $${paramIndex++}`);
         params.push(data[field]);
       }
     }
-    
+
     if (fields.length === 0) {
       return this.findById(id);
     }
-    
-    fields.push('updated_at = NOW()');
+
+    fields.push("updated_at = NOW()");
     params.push(id);
-    
+
     const sql = `
       UPDATE collections
-      SET ${fields.join(', ')}
+      SET ${fields.join(", ")}
       WHERE id = $${paramIndex}
       RETURNING *
     `;
-    
+
     const result = await query(sql, params);
     return result.rows[0];
   },
@@ -165,14 +167,13 @@ const collectionRepository = {
   async getActiveCollections() {
     const sql = `
       SELECT 
-        c.id, c.name, c.description, c.cover_image,
-        c.starts_at, c.ends_at,
+        c.id, c.title, c.description,
+        c.launch_at,
         COUNT(CASE WHEN p.status = 'available' THEN 1 END) as available_count
       FROM collections c
       LEFT JOIN products p ON c.id = p.collection_id
       WHERE c.is_active = true
-        AND (c.starts_at IS NULL OR c.starts_at <= NOW())
-        AND (c.ends_at IS NULL OR c.ends_at > NOW())
+        AND (c.launch_at IS NULL OR c.launch_at <= NOW())
       GROUP BY c.id
       ORDER BY c.created_at DESC
     `;

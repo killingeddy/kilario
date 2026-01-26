@@ -1,7 +1,7 @@
-const { z } = require('zod');
+const { z } = require("zod");
 
 const createCollectionSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+  name: z.string().min(2, "Name must be at least 2 characters"),
   description: z.string().optional(),
   cover_image: z.string().url().optional(),
   is_active: z.boolean().default(true),

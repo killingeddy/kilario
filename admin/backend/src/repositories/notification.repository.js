@@ -1,11 +1,11 @@
-const { query } = require('../database/connection');
+const { query } = require("../database/connection");
 
 const NOTIFICATION_TYPES = {
-  NEW_ORDER: 'new_order',
-  PAYMENT_RECEIVED: 'payment_received',
-  DELIVERY_COMPLETED: 'delivery_completed',
-  LOW_STOCK: 'low_stock',
-  SYSTEM: 'system',
+  NEW_ORDER: "new_order",
+  PAYMENT_RECEIVED: "payment_received",
+  DELIVERY_COMPLETED: "delivery_completed",
+  LOW_STOCK: "low_stock",
+  SYSTEM: "system",
 };
 
 const notificationRepository = {
@@ -17,29 +17,29 @@ const notificationRepository = {
       FROM notifications
       WHERE 1=1
     `;
-    
+
     const params = [];
     let paramIndex = 1;
-    
+
     if (unread_only) {
       sql += ` AND is_read = false`;
     }
-    
+
     sql += ` ORDER BY created_at DESC`;
     sql += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
     params.push(limit, offset);
-    
+
     const result = await query(sql, params);
     return result.rows;
   },
 
   async count({ unread_only }) {
     let sql = `SELECT COUNT(*) FROM notifications WHERE 1=1`;
-    
+
     if (unread_only) {
       sql += ` AND is_read = false`;
     }
-    
+
     const result = await query(sql);
     return parseInt(result.rows[0].count, 10);
   },
@@ -58,20 +58,20 @@ const notificationRepository = {
 
   async create(data, client = null) {
     const queryFn = client ? client.query.bind(client) : query;
-    
+
     const sql = `
       INSERT INTO notifications (type, title, message, data)
       VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
-    
+
     const params = [
       data.type,
       data.title,
       data.message,
       data.data ? JSON.stringify(data.data) : null,
     ];
-    
+
     const result = await queryFn(sql, params);
     return result.rows[0];
   },

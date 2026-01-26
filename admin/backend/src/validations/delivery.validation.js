@@ -1,10 +1,18 @@
-const { z } = require('zod');
+const { z } = require("zod");
 
-const DELIVERY_STATUS = ['pending', 'scheduled', 'in_transit', 'delivered', 'failed'];
+const DELIVERY_STATUS = [
+  "pending",
+  "scheduled",
+  "in_transit",
+  "delivered",
+  "failed",
+];
 
 const updateDeliveryStatusSchema = z.object({
   status: z.enum(DELIVERY_STATUS, {
-    errorMap: () => ({ message: `Status must be one of: ${DELIVERY_STATUS.join(', ')}` }),
+    errorMap: () => ({
+      message: `Status must be one of: ${DELIVERY_STATUS.join(", ")}`,
+    }),
   }),
   notes: z.string().optional(),
   scheduled_at: z.string().datetime().optional(),

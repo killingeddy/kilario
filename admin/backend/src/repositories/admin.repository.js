@@ -1,4 +1,4 @@
-const { query } = require('../database/connection');
+const { query } = require("../database/connection");
 
 const adminRepository = {
   async findByEmail(email) {

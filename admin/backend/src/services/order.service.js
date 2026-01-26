@@ -1,20 +1,22 @@
-const orderRepository = require('../repositories/order.repository');
-const { AppError } = require('../middlewares/errorHandler');
-const { paginate, paginationResponse } = require('../utils/helpers');
-const logger = require('../utils/logger');
+const orderRepository = require("../repositories/order.repository");
+const { AppError } = require("../middlewares/errorHandler");
+const { paginate, paginationResponse } = require("../utils/helpers");
+const logger = require("../utils/logger");
 
-// Valid status transitions
 const STATUS_TRANSITIONS = {
-  pending: ['paid', 'cancelled'],
-  paid: ['refunded'],
+  pending: ["paid", "cancelled"],
+  paid: ["refunded"],
   refunded: [],
   cancelled: [],
 };
 
 const orderService = {
   async list(queryParams) {
-    const { page, limit, offset } = paginate(queryParams.page, queryParams.limit);
-    
+    const { page, limit, offset } = paginate(
+      queryParams.page,
+      queryParams.limit,
+    );
+
     const [orders, total] = await Promise.all([
       orderRepository.findAll({
         limit,
@@ -33,52 +35,49 @@ const orderService = {
         date_to: queryParams.date_to,
       }),
     ]);
-    
+
     return paginationResponse(orders, total, page, limit);
   },
 
   async getById(id) {
     const order = await orderRepository.findByIdWithItems(id);
-    
+
     if (!order) {
-      throw new AppError('Order not found', 404);
+      throw new AppError("Order not found", 404);
     }
-    
+
     return order;
   },
 
   async updateStatus(id, newStatus, reason, adminId) {
     const order = await orderRepository.findById(id);
-    
+
     if (!order) {
-      throw new AppError('Order not found', 404);
+      throw new AppError("Order not found", 404);
     }
-    
-    // Validate status transition
+
     const currentStatus = order.status;
     const allowedTransitions = STATUS_TRANSITIONS[currentStatus] || [];
-    
+
     if (!allowedTransitions.includes(newStatus)) {
       throw new AppError(
-        `Cannot change status from '${currentStatus}' to '${newStatus}'. Allowed: ${allowedTransitions.join(', ') || 'none'}`,
-        400
+        `Cannot change status from '${currentStatus}' to '${newStatus}'. Allowed: ${allowedTransitions.join(", ") || "none"}`,
+        400,
       );
     }
-    
-    // For refunds, require a reason
-    if (newStatus === 'refunded' && !reason) {
-      throw new AppError('Refund reason is required', 400);
+    if (newStatus === "refunded" && !reason) {
+      throw new AppError("Refund reason is required", 400);
     }
-    
+
     const updatedOrder = await orderRepository.updateStatus(id, newStatus);
-    
-    logger.audit('ORDER_STATUS_CHANGED', adminId, {
+
+    logger.audit("ORDER_STATUS_CHANGED", adminId, {
       orderId: id,
       from: currentStatus,
       to: newStatus,
       reason: reason || null,
     });
-    
+
     return updatedOrder;
   },
 

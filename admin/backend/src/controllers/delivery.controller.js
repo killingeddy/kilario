@@ -1,6 +1,6 @@
-const deliveryService = require('../services/delivery.service');
-const responses = require('../utils/responses');
-const { asyncHandler } = require('../middlewares/errorHandler');
+const deliveryService = require("../services/delivery.service");
+const responses = require("../utils/responses");
+const { asyncHandler } = require("../middlewares/errorHandler");
 
 const deliveryController = {
   list: asyncHandler(async (req, res) => {
@@ -21,9 +21,13 @@ const deliveryController = {
       parseInt(id, 10),
       status,
       { notes, scheduled_at, delivered_at },
-      req.admin.id
+      req.admin.id,
     );
-    return responses.success(res, { delivery }, 'Delivery status updated successfully');
+    return responses.success(
+      res,
+      { delivery },
+      "Delivery status updated successfully",
+    );
   }),
 };
 

@@ -1,7 +1,16 @@
-const { query, transaction, getClient } = require('../database/connection');
+const { query, transaction, getClient } = require("../database/connection");
 
 const orderRepository = {
-  async findAll({ limit, offset, status, customer_email, date_from, date_to, sort_by, sort_order }) {
+  async findAll({
+    limit,
+    offset,
+    status,
+    customer_email,
+    date_from,
+    date_to,
+    sort_by,
+    sort_order,
+  }) {
     let sql = `
       SELECT 
         o.id, o.reference_code, o.customer_name, o.customer_email, o.customer_phone,
@@ -12,41 +21,43 @@ const orderRepository = {
       LEFT JOIN order_items oi ON o.id = oi.order_id
       WHERE 1=1
     `;
-    
+
     const params = [];
     let paramIndex = 1;
-    
+
     if (status) {
       sql += ` AND o.status = $${paramIndex++}`;
       params.push(status);
     }
-    
+
     if (customer_email) {
       sql += ` AND o.customer_email ILIKE $${paramIndex++}`;
       params.push(`%${customer_email}%`);
     }
-    
+
     if (date_from) {
       sql += ` AND o.created_at >= $${paramIndex++}`;
       params.push(date_from);
     }
-    
+
     if (date_to) {
       sql += ` AND o.created_at <= $${paramIndex++}`;
       params.push(date_to);
     }
-    
+
     sql += ` GROUP BY o.id`;
-    
+
     // Sorting
-    const allowedSortColumns = ['created_at', 'total'];
-    const sortColumn = allowedSortColumns.includes(sort_by) ? sort_by : 'created_at';
-    const sortDir = sort_order === 'asc' ? 'ASC' : 'DESC';
+    const allowedSortColumns = ["created_at", "total"];
+    const sortColumn = allowedSortColumns.includes(sort_by)
+      ? sort_by
+      : "created_at";
+    const sortDir = sort_order === "asc" ? "ASC" : "DESC";
     sql += ` ORDER BY o.${sortColumn} ${sortDir}`;
-    
+
     sql += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
     params.push(limit, offset);
-    
+
     const result = await query(sql, params);
     return result.rows;
   },
@@ -55,27 +66,27 @@ const orderRepository = {
     let sql = `SELECT COUNT(*) FROM orders o WHERE 1=1`;
     const params = [];
     let paramIndex = 1;
-    
+
     if (status) {
       sql += ` AND o.status = $${paramIndex++}`;
       params.push(status);
     }
-    
+
     if (customer_email) {
       sql += ` AND o.customer_email ILIKE $${paramIndex++}`;
       params.push(`%${customer_email}%`);
     }
-    
+
     if (date_from) {
       sql += ` AND o.created_at >= $${paramIndex++}`;
       params.push(date_from);
     }
-    
+
     if (date_to) {
       sql += ` AND o.created_at <= $${paramIndex++}`;
       params.push(date_to);
     }
-    
+
     const result = await query(sql, params);
     return parseInt(result.rows[0].count, 10);
   },
@@ -96,7 +107,7 @@ const orderRepository = {
   async findByIdWithItems(id) {
     const order = await this.findById(id);
     if (!order) return null;
-    
+
     // Get order items with product details
     const itemsSql = `
       SELECT 
@@ -108,7 +119,7 @@ const orderRepository = {
       WHERE oi.order_id = $1
     `;
     const itemsResult = await query(itemsSql, [id]);
-    
+
     // Get delivery info
     const deliverySql = `
       SELECT id, status, scheduled_at, delivered_at, notes
@@ -116,7 +127,7 @@ const orderRepository = {
       WHERE order_id = $1
     `;
     const deliveryResult = await query(deliverySql, [id]);
-    
+
     return {
       ...order,
       items: itemsResult.rows,
@@ -138,7 +149,7 @@ const orderRepository = {
 
   async create(data, client = null) {
     const queryFn = client ? client.query.bind(client) : query;
-    
+
     const sql = `
       INSERT INTO orders (
         reference_code, customer_name, customer_email, customer_phone,
@@ -147,7 +158,7 @@ const orderRepository = {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `;
-    
+
     const params = [
       data.reference_code,
       data.customer_name,
@@ -155,52 +166,52 @@ const orderRepository = {
       data.customer_phone || null,
       data.shipping_address ? JSON.stringify(data.shipping_address) : null,
       data.total,
-      data.status || 'pending',
+      data.status || "pending",
       data.payment_method || null,
       data.payment_id || null,
       data.notes || null,
     ];
-    
+
     const result = await queryFn(sql, params);
     return result.rows[0];
   },
 
   async createOrderItem(orderId, productId, price, client = null) {
     const queryFn = client ? client.query.bind(client) : query;
-    
+
     const sql = `
       INSERT INTO order_items (order_id, product_id, price)
       VALUES ($1, $2, $3)
       RETURNING *
     `;
-    
+
     const result = await queryFn(sql, [orderId, productId, price]);
     return result.rows[0];
   },
 
   async updateStatus(id, status, additionalData = {}) {
-    const fields = ['status = $1', 'updated_at = NOW()'];
+    const fields = ["status = $1", "updated_at = NOW()"];
     const params = [status];
     let paramIndex = 2;
-    
-    if (status === 'paid' && !additionalData.paid_at) {
+
+    if (status === "paid" && !additionalData.paid_at) {
       fields.push(`paid_at = NOW()`);
     }
-    
+
     if (additionalData.paid_at) {
       fields.push(`paid_at = $${paramIndex++}`);
       params.push(additionalData.paid_at);
     }
-    
+
     params.push(id);
-    
+
     const sql = `
       UPDATE orders
-      SET ${fields.join(', ')}
+      SET ${fields.join(", ")}
       WHERE id = $${paramIndex}
       RETURNING *
     `;
-    
+
     const result = await query(sql, params);
     return result.rows[0];
   },
@@ -229,20 +240,20 @@ const orderRepository = {
       FROM orders
       WHERE status = 'paid'
     `;
-    
+
     const params = [];
     let paramIndex = 1;
-    
+
     if (dateFrom) {
       sql += ` AND paid_at >= $${paramIndex++}`;
       params.push(dateFrom);
     }
-    
+
     if (dateTo) {
       sql += ` AND paid_at <= $${paramIndex++}`;
       params.push(dateTo);
     }
-    
+
     const result = await query(sql, params);
     return result.rows[0];
   },

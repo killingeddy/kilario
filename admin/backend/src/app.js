@@ -49,18 +49,15 @@ app.use(
   }),
 );
 
-// Swagger JSON endpoint
 app.get("/api-docs.json", (req, res) => {
   res.setHeader("Content-Type", "application/json");
   res.send(swaggerSpecs);
 });
 
-// Health check
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin/products", productRoutes);
 app.use("/api/admin/collections", collectionRoutes);
@@ -70,7 +67,6 @@ app.use("/api/admin/notifications", notificationRoutes);
 app.use("/api/admin/dashboard", dashboardRoutes);
 app.use("/api/webhooks", webhookRoutes);
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -78,7 +74,6 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
 app.use(errorHandler);
 
 module.exports = app;

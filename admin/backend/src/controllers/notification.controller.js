@@ -1,6 +1,6 @@
-const notificationService = require('../services/notification.service');
-const responses = require('../utils/responses');
-const { asyncHandler } = require('../middlewares/errorHandler');
+const notificationService = require("../services/notification.service");
+const responses = require("../utils/responses");
+const { asyncHandler } = require("../middlewares/errorHandler");
 
 const notificationController = {
   list: asyncHandler(async (req, res) => {
@@ -8,7 +8,7 @@ const notificationController = {
     const result = await notificationService.list({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
-      unread_only: unread_only === 'true',
+      unread_only: unread_only === "true",
     });
     return responses.success(res, result);
   }),
@@ -17,14 +17,18 @@ const notificationController = {
     const { id } = req.params;
     const notification = await notificationService.markAsRead(
       parseInt(id, 10),
-      req.admin.id
+      req.admin.id,
     );
-    return responses.success(res, { notification }, 'Notification marked as read');
+    return responses.success(
+      res,
+      { notification },
+      "Notification marked as read",
+    );
   }),
 
   markAllAsRead: asyncHandler(async (req, res) => {
     const result = await notificationService.markAllAsRead(req.admin.id);
-    return responses.success(res, result, 'All notifications marked as read');
+    return responses.success(res, result, "All notifications marked as read");
   }),
 
   getUnreadCount: asyncHandler(async (req, res) => {

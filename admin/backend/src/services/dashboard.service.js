@@ -1,12 +1,11 @@
-const { query } = require('../database/connection');
-const orderService = require('./order.service');
-const productService = require('./product.service');
-const deliveryService = require('./delivery.service');
-const notificationService = require('./notification.service');
+const { query } = require("../database/connection");
+const orderService = require("./order.service");
+const productService = require("./product.service");
+const deliveryService = require("./delivery.service");
+const notificationService = require("./notification.service");
 
 const dashboardService = {
   async getDashboardData() {
-    // Run all queries in parallel for better performance
     const [
       salesStats,
       productStatusCounts,
@@ -25,14 +24,13 @@ const dashboardService = {
       this.getMonthSales(),
     ]);
 
-    // Format product counts
     const productCounts = {
       available: 0,
       reserved: 0,
       sold: 0,
       total: 0,
     };
-    
+
     productStatusCounts.forEach(({ status, count }) => {
       productCounts[status] = parseInt(count, 10);
       productCounts.total += parseInt(count, 10);
