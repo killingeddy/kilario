@@ -4,12 +4,17 @@ const deliveryRepository = {
   async findAll({ limit, offset, status, date_from, date_to }) {
     let sql = `
       SELECT 
-        d.id, d.order_id, d.status, d.scheduled_at, d.delivered_at, d.notes,
+        d.id, d.order_id, d.status, d.notes,
         d.created_at, d.updated_at,
-        o.reference_code, o.customer_name, o.customer_phone,
-        o.shipping_address
+        o.reference_code, u.name as customer_name, 
+        u.email as customer_email, u.phone as customer_phone,
+        CONCAT(
+        d.address, ', ', 
+        d.neighborhood, ', ',
+        d.city)
       FROM deliveries d
       JOIN orders o ON d.order_id = o.id
+      JOIN users u ON o.user_id = u.id
       WHERE 1=1
     `;
 
@@ -35,10 +40,9 @@ const deliveryRepository = {
       CASE d.status 
         WHEN 'pending' THEN 1 
         WHEN 'scheduled' THEN 2 
-        WHEN 'in_transit' THEN 3 
-        ELSE 4 
+        WHEN 'delivered' THEN 3 
+        ELSE 4
       END,
-      d.scheduled_at ASC NULLS LAST,
       d.created_at DESC`;
 
     sql += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;

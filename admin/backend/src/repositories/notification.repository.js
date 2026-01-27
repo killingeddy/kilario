@@ -12,8 +12,8 @@ const notificationRepository = {
   async findAll({ limit, offset, unread_only }) {
     let sql = `
       SELECT 
-        id, type, title, message, data, is_read,
-        created_at, read_at
+        id, type, title, message, is_read,
+        created_at
       FROM notifications
       WHERE 1=1
     `;

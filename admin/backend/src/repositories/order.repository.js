@@ -13,12 +13,13 @@ const orderRepository = {
   }) {
     let sql = `
       SELECT 
-        o.id, o.reference_code, o.customer_name, o.customer_email, o.customer_phone,
-        o.total, o.status, o.payment_method, o.payment_id,
-        o.created_at, o.updated_at, o.paid_at,
+        o.id, o.reference_code, u.name as customer_name, u.email as customer_email, u.phone as customer_phone,
+        o.total, o.status, o.payment_method, o.external_payment_id,
+        o.created_at, o.paid_at,
         COUNT(oi.id) as item_count
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
+      LEFT JOIN users u ON o.user_id = u.id
       WHERE 1=1
     `;
 
@@ -31,7 +32,7 @@ const orderRepository = {
     }
 
     if (customer_email) {
-      sql += ` AND o.customer_email ILIKE $${paramIndex++}`;
+      sql += ` AND u.email ILIKE $${paramIndex++}`;
       params.push(`%${customer_email}%`);
     }
 
@@ -45,7 +46,7 @@ const orderRepository = {
       params.push(date_to);
     }
 
-    sql += ` GROUP BY o.id`;
+    sql += ` GROUP BY o.id, u.name, u.email, u.phone`;
 
     // Sorting
     const allowedSortColumns = ["created_at", "total"];
@@ -63,7 +64,7 @@ const orderRepository = {
   },
 
   async count({ status, customer_email, date_from, date_to }) {
-    let sql = `SELECT COUNT(*) FROM orders o WHERE 1=1`;
+    let sql = `SELECT COUNT(*) FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE 1=1`;
     const params = [];
     let paramIndex = 1;
 
@@ -73,7 +74,7 @@ const orderRepository = {
     }
 
     if (customer_email) {
-      sql += ` AND o.customer_email ILIKE $${paramIndex++}`;
+      sql += ` AND u.email ILIKE $${paramIndex++}`;
       params.push(`%${customer_email}%`);
     }
 

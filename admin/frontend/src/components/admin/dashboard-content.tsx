@@ -130,10 +130,10 @@ export function DashboardContent() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section>
           <Card
-            className="border-0 "
+            className="border"
             style={{ backgroundColor: "var(--background)" }}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="">
               <div className="flex items-center justify-between">
                 <CardTitle
                   className="text-base font-semibold"
@@ -209,10 +209,10 @@ export function DashboardContent() {
 
         <section>
           <Card
-            className="border-0 "
+            className="border"
             style={{ backgroundColor: "var(--background)" }}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="">
               <div className="flex items-center justify-between">
                 <CardTitle
                   className="text-base font-semibold"
@@ -263,7 +263,7 @@ export function DashboardContent() {
                           className="text-sm font-medium truncate"
                           style={{ color: "var(--text)" }}
                         >
-                          {collection.name}
+                          {collection.title}
                         </p>
                         <p
                           className="text-xs font-serif"
@@ -286,10 +286,10 @@ export function DashboardContent() {
 
         <section>
           <Card
-            className="border-0 "
+            className=""
             style={{ backgroundColor: "var(--background)" }}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="">
               <div className="flex items-center justify-between">
                 <CardTitle
                   className="text-base font-semibold flex items-center gap-2"
@@ -369,10 +369,10 @@ export function DashboardContent() {
 
         <section>
           <Card
-            className="border-0 "
+            className="border"
             style={{ backgroundColor: "var(--background)" }}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="">
               <div className="flex items-center justify-between">
                 <CardTitle
                   className="text-base font-semibold flex items-center gap-2"

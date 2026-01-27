@@ -77,7 +77,10 @@ export function OrdersList() {
   }, [search, statusFilter]);
 
   const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
+    if (isNaN(value)) return "-";
+    if (value === 0) return "Grátis";
+
+    return parseFloat(value.toString()).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
@@ -165,11 +168,11 @@ export function OrdersList() {
 
       {/* Orders List */}
       {!isLoading && (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {orders.map((order) => (
             <Link key={order.id} href={`/admin/orders/${order.id}`}>
               <Card
-                className="transition-opacity hover:opacity-80 border-0 "
+                className="transition-opacity hover:opacity-80 border pt-0"
                 style={{ backgroundColor: "var(--background)" }}
               >
                 <CardContent className="p-4">
