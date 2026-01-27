@@ -16,7 +16,7 @@ const notificationController = {
   markAsRead: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const notification = await notificationService.markAsRead(
-      parseInt(id, 10),
+      id,
       req.admin.id,
     );
     return responses.success(

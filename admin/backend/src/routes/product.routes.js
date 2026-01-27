@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.use(authAdmin);
 
-router.get("/", validateQuery(productQuerySchema), productController.list);
+router.get("/", productController.list);
 router.get("/:id", productController.getById);
 router.post("/", validate(createProductSchema), productController.create);
 router.put("/:id", validate(updateProductSchema), productController.update);

@@ -10,7 +10,7 @@ const orderController = {
 
   getById: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const order = await orderService.getById(parseInt(id, 10));
+    const order = await orderService.getById(id,);
     return responses.success(res, { order });
   }),
 
@@ -18,7 +18,7 @@ const orderController = {
     const { id } = req.params;
     const { status, reason } = req.body;
     const order = await orderService.updateStatus(
-      parseInt(id, 10),
+      id,
       status,
       reason,
       req.admin.id,

@@ -5,24 +5,24 @@ const { asyncHandler } = require("../middlewares/errorHandler");
 const collectionController = {
   list: asyncHandler(async (req, res) => {
     const result = await collectionService.list(req.query);
-    return responses.success(res, result);
+    return responses.success(res, result.data);
   }),
 
   getById: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const includeProducts = req.query.include_products === "true";
     const collection = await collectionService.getById(
-      parseInt(id, 10),
+      id,
       includeProducts,
     );
-    return responses.success(res, { collection });
+    return responses.success(res, collection);
   }),
 
   create: asyncHandler(async (req, res) => {
-    const collection = await collectionService.create(req.body, req.admin.id);
+    const collection = await collectionService.create(req.body, req.admin.id)
     return responses.created(
       res,
-      { collection },
+       collection ,
       "Collection created successfully",
     );
   }),
@@ -30,7 +30,7 @@ const collectionController = {
   update: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const collection = await collectionService.update(
-      parseInt(id, 10),
+      id,
       req.body,
       req.admin.id,
     );
@@ -44,18 +44,18 @@ const collectionController = {
   toggleActive: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const collection = await collectionService.toggleActive(
-      parseInt(id, 10),
+      id,
       req.admin.id,
     );
     const message = collection.is_active
       ? "Collection activated"
       : "Collection deactivated";
-    return responses.success(res, { collection }, message);
+    return responses.success(res, collection, message);
   }),
 
   delete: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    await collectionService.delete(parseInt(id, 10), req.admin.id);
+    await collectionService.delete(id, req.admin.id);
     return responses.success(res, null, "Collection deleted successfully");
   }),
 

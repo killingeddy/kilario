@@ -13,12 +13,14 @@ const productRepository = {
     let sql = `
       SELECT 
         p.id, p.title, p.description, p.price, p.original_price,
-        p.size, p.brand, p.color, p.condition, p.status,
-        p.images, p.tags, p.collection_id,
-        p.created_at, p.updated_at,
-        c.title as collection_name
+        p.brand, p.status, p.collection_id, s.label as size,
+        p.created_at, p.updated_at, c.title as collection_name,
+        ARRAY_AGG(pi.url) AS images, cond.label as condition
       FROM products p
       LEFT JOIN collections c ON p.collection_id = c.id
+      LEFT JOIN product_images pi ON p.id = pi.product_id
+      LEFT JOIN conditions cond ON p.condition_id = cond.id
+      LEFT JOIN sizes s ON p.size_id = s.id
       WHERE 1=1
     `;
 
@@ -30,7 +32,7 @@ const productRepository = {
       params.push(status);
     }
 
-    if (collection_id) {
+    if (collection_id) {      
       sql += ` AND p.collection_id = $${paramIndex++}`;
       params.push(collection_id);
     }
@@ -41,6 +43,9 @@ const productRepository = {
       paramIndex++;
     }
 
+    // Grouping
+    sql += ` GROUP BY p.id, c.title, s.label, cond.label`;
+    
     // Sorting
     const allowedSortColumns = ["created_at", "price", "title"];
     const sortColumn = allowedSortColumns.includes(sort_by)
@@ -84,15 +89,18 @@ const productRepository = {
 
   async findById(id) {
     const sql = `
-      SELECT 
+      SELECT
         p.id, p.title, p.description, p.price, p.original_price,
-        p.size, p.brand, p.color, p.condition, p.status,
-        p.images, p.tags, p.collection_id,
-        p.created_at, p.updated_at,
-        c.title as collection_title
+        p.brand, p.status, p.collection_id, s.label as size,
+        p.created_at, p.updated_at, c.title as collection_name,
+        ARRAY_AGG(pi.url) AS images, cond.label as condition
       FROM products p
       LEFT JOIN collections c ON p.collection_id = c.id
+      LEFT JOIN product_images pi ON p.id = pi.product_id
+      LEFT JOIN conditions cond ON p.condition_id = cond.id
+      LEFT JOIN sizes s ON p.size_id = s.id
       WHERE p.id = $1
+      GROUP BY p.id, c.title, s.label, cond.label
     `;
     const result = await query(sql, [id]);
     return result.rows[0] || null;

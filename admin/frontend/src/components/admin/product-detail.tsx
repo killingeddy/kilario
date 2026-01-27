@@ -14,7 +14,7 @@ import { productsApi, type Product } from "@/lib/api";
 
 const productStatusLabels: Record<string, string> = {
   draft: "Rascunho",
-  active: "Disponivel",
+  available: "Disponivel",
   sold: "Vendida",
   archived: "Arquivada",
 };
@@ -46,7 +46,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
   }, [id]);
 
   const handleDelete = async () => {
-    if (!confirm("Tem certeza que deseja excluir esta peca?")) return;
+    if (!confirm("Tem certeza que deseja excluir esta peça?")) return;
 
     setIsDeleting(true);
     try {
@@ -61,7 +61,10 @@ export function ProductDetail({ id }: ProductDetailProps) {
   };
 
   const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
+    if (isNaN(value)) return "-";
+    if (value === 0) return "Grátis";
+
+    return parseFloat(value.toString()).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
@@ -88,11 +91,11 @@ export function ProductDetail({ id }: ProductDetailProps) {
             </Link>
           </Button>
           <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
-            Peca nao encontrada
+            Peça nao encontrada
           </h1>
         </div>
         <p className="font-serif" style={{ color: "var(--text-aux)" }}>
-          A peca que voce esta procurando nao existe ou foi removida.
+          A peça que voce esta procurando nao existe ou foi removida.
         </p>
       </div>
     );
@@ -197,7 +200,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
               </p>
             </div>
             <p className="text-xl font-bold" style={{ color: "var(--text)" }}>
-              {formatCurrency(product.sell_price)}
+              {formatCurrency(product.price ?? 0)}
             </p>
           </div>
 
@@ -210,7 +213,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
                 className="text-sm font-serif"
                 style={{ color: "var(--text-aux)" }}
               >
-                {product.collection.name}
+                {product.collection.title}
               </span>
             )}
           </div>
@@ -284,35 +287,19 @@ export function ProductDetail({ id }: ProductDetailProps) {
                 </dd>
               </div>
             )}
-            {product.color && (
+            {product.original_price && (
               <div className="flex justify-between">
                 <dt
                   className="text-sm font-serif"
                   style={{ color: "var(--text-aux)" }}
                 >
-                  Cor
+                  Preço original
                 </dt>
                 <dd
                   className="text-sm font-medium"
                   style={{ color: "var(--text)" }}
                 >
-                  {product.color}
-                </dd>
-              </div>
-            )}
-            {product.cost_price && (
-              <div className="flex justify-between">
-                <dt
-                  className="text-sm font-serif"
-                  style={{ color: "var(--text-aux)" }}
-                >
-                  Preco de custo
-                </dt>
-                <dd
-                  className="text-sm font-medium"
-                  style={{ color: "var(--text)" }}
-                >
-                  {formatCurrency(product.cost_price)}
+                  {formatCurrency(product.original_price)}
                 </dd>
               </div>
             )}
@@ -369,7 +356,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
         >
           <Link href={`/admin/products/${product.id}/edit`}>
             <Pencil className="h-5 w-5 mr-2" />
-            Editar peca
+            Editar peça
           </Link>
         </Button>
       </div>

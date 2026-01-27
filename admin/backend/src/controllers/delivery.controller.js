@@ -10,7 +10,7 @@ const deliveryController = {
 
   getById: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const delivery = await deliveryService.getById(parseInt(id, 10));
+    const delivery = await deliveryService.getById(id,);
     return responses.success(res, { delivery });
   }),
 
@@ -18,7 +18,7 @@ const deliveryController = {
     const { id } = req.params;
     const { status, notes, scheduled_at, delivered_at } = req.body;
     const delivery = await deliveryService.updateStatus(
-      parseInt(id, 10),
+      id,
       status,
       { notes, scheduled_at, delivered_at },
       req.admin.id,

@@ -36,7 +36,7 @@ export function ProductEditWrapper({ id }: ProductEditWrapperProps) {
     return (
       <div className="p-4">
         <p className="font-serif" style={{ color: "var(--text-aux)" }}>
-          Peca nao encontrada
+          Peça nao encontrada
         </p>
       </div>
     );

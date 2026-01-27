@@ -1,10 +1,15 @@
 // Standardized API responses
 
 const success = (res, data = null, message = "Success", statusCode = 200) => {
+  let dataObj = data;
+  if (data && typeof data === "object" && data.hasOwnProperty("data")) {
+    dataObj = data.data;
+  }
+
   return res.status(statusCode).json({
     success: true,
     message,
-    data,
+    data: dataObj,
   });
 };
 

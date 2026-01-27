@@ -99,8 +99,8 @@ const collectionRepository = {
 
   async create(data) {
     const sql = `
-      INSERT INTO collections (title, description, is_active, launch_at)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO collections (title, description, is_active, launch_at, slug)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `;
 
@@ -109,6 +109,7 @@ const collectionRepository = {
       data.description || null,
       data.is_active !== undefined ? data.is_active : true,
       data.launch_at || null,
+      data.slug || null,
     ];
 
     const result = await query(sql, params);

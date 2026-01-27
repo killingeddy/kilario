@@ -68,11 +68,11 @@ export function DropsList() {
       </div>
 
       {/* Drops List */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {collections.map((collection) => (
           <Link key={collection.id} href={`/admin/drops/${collection.id}`}>
             <Card
-              className="transition-opacity hover:opacity-80 border-0 "
+              className="transition-opacity hover:opacity-80 border pt-0"
               style={{ backgroundColor: "var(--background)" }}
             >
               <CardContent className="p-4">
@@ -92,7 +92,7 @@ export function DropsList() {
                         className="text-sm font-semibold truncate"
                         style={{ color: "var(--text)" }}
                       >
-                        {collection.name}
+                        {collection.title}
                       </h3>
                       <ChevronRight
                         className="h-4 w-4 shrink-0"

@@ -145,7 +145,9 @@ export const collectionsApi = {
     }>(`/api/admin/collections${query ? `?${query}` : ""}`);
   },
 
-  get: (id: string) => apiFetch<Collection>(`/api/admin/collections/${id}`),
+  get: (id: string) => apiFetch<{
+    data: Collection;
+  }>(`/api/admin/collections/${id}`),
 
   getActive: () => apiFetch<Collection | null>("/api/admin/collections/active"),
 
@@ -162,7 +164,9 @@ export const collectionsApi = {
     }),
 
   toggle: (id: string) =>
-    apiFetch<Collection>(`/api/admin/collections/${id}/toggle`, {
+    apiFetch<{
+      data: Collection;
+    }>(`/api/admin/collections/${id}/toggle`, {
       method: "PATCH",
     }),
 
@@ -269,18 +273,18 @@ export interface Product {
   description?: string;
   category: string;
   brand?: string;
-  size?: string;
-  color?: string;
+  size?: string
   condition?: string;
-  cost_price?: number;
-  sell_price: number;
-  status: "draft" | "active" | "sold" | "archived";
+  price?: number;
+  original_price?: number;
+  status: "draft" | "available" | "sold" | "archived";
   images?: string[];
   measurements?: Record<string, number>;
   collection_id?: string;
   collection?: Collection;
   created_at: string;
   updated_at: string;
+  size_id?: string;
 }
 
 export interface CreateProductData {
@@ -288,11 +292,10 @@ export interface CreateProductData {
   description?: string;
   category: string;
   brand?: string;
-  size?: string;
-  color?: string;
+  size_id?: string;
   condition?: string;
-  cost_price?: number;
-  sell_price: number;
+  original_price?: number;
+  price: number;
   status?: string;
   images?: string[];
   measurements?: Record<string, number>;
@@ -301,20 +304,24 @@ export interface CreateProductData {
 
 export interface Collection {
   id: string;
-  name: string;
+  title: string;
   slug: string;
   description?: string;
-  cover_image?: string;
-  is_active: boolean;
+  is_active?: boolean;
   products_count?: number;
+  avaliable_count?: number;
+  sold_count?: number;
   created_at: string;
   updated_at: string;
+  launch_at?: string;
 }
 
 export interface CreateCollectionData {
-  name: string;
+  title: string;
   description?: string;
-  cover_image?: string;
+  is_active?: boolean;
+  launch_at?: string;
+  slug?: string;
 }
 
 export interface Order {

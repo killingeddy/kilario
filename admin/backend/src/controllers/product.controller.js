@@ -10,8 +10,8 @@ const productController = {
 
   getById: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const product = await productService.getById(parseInt(id, 10));
-    return responses.success(res, { product });
+    const product = await productService.getById(id);
+    return responses.success(res, product);
   }),
 
   create: asyncHandler(async (req, res) => {
@@ -21,32 +21,24 @@ const productController = {
 
   update: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const product = await productService.update(
-      parseInt(id, 10),
-      req.body,
-      req.admin.id,
-    );
-    return responses.success(res, { product }, "Product updated successfully");
+    const product = await productService.update(id, req.body, req.admin.id);
+    return responses.success(res, product, "Product updated successfully");
   }),
 
   updateStatus: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
-    const product = await productService.updateStatus(
-      parseInt(id, 10),
-      status,
-      req.admin.id,
-    );
+    const product = await productService.updateStatus(id, status, req.admin.id);
     return responses.success(
       res,
-      { product },
+      product,
       "Product status updated successfully",
     );
   }),
 
   delete: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    await productService.delete(parseInt(id, 10), req.admin.id);
+    await productService.delete(id, req.admin.id);
     return responses.success(res, null, "Product deleted successfully");
   }),
 };

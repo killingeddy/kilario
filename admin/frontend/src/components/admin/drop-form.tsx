@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react"
+import React from "react";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -26,9 +26,10 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
   const [error, setError] = useState("");
 
   // Form state
-  const [name, setName] = useState(drop?.name || "");
+  const [name, setName] = useState(drop?.title || "");
   const [description, setDescription] = useState(drop?.description || "");
-  const [isActive, setIsActive] = useState(drop?.is_active ?? false);
+  const [isActive, setIsActive] = useState(drop?.is_active ?? true);
+  const [launchDate, setLaunchDate] = useState(drop?.launch_at || "");
 
   // Auto-generate slug preview
   const slug = name
@@ -45,15 +46,23 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
 
     try {
       if (isEditing && drop) {
-        await collectionsApi.update(drop.id, { name, description });
+        await collectionsApi.update(drop.id, {
+          title: name,
+          description,
+          slug,
+          launch_at: launchDate,
+        });
         if (drop.is_active !== isActive) {
           await collectionsApi.toggle(drop.id);
         }
       } else {
-        const newCollection = await collectionsApi.create({ name, description });
-        if (isActive) {
-          await collectionsApi.toggle(newCollection.id);
-        }
+        const newCollection = await collectionsApi.create({
+          title: name,
+          description,
+          is_active: isActive,
+          slug,
+          launch_at: launchDate,
+        });
       }
       router.push("/admin/drops");
     } catch (err) {
@@ -64,7 +73,7 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button asChild variant="ghost" size="icon">
@@ -89,9 +98,11 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Info */}
-        <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
+      <form onSubmit={handleSubmit}>
+        <Card
+          className="border-0 "
+          style={{ backgroundColor: "var(--background)" }}
+        >
           <CardContent className="p-4">
             <FormSection title="Informacoes do drop">
               <div className="space-y-4">
@@ -124,7 +135,10 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
                   >
                     /drops/{slug || "slug-do-drop"}
                   </p>
-                  <p className="text-xs font-serif" style={{ color: "var(--text-aux)" }}>
+                  <p
+                    className="text-xs font-serif"
+                    style={{ color: "var(--text-aux)" }}
+                  >
                     Gerado automaticamente a partir do nome
                   </p>
                 </div>
@@ -146,40 +160,69 @@ export function DropForm({ drop, isEditing = false }: DropFormProps) {
                     }}
                   />
                 </div>
+
+                <div
+                  className="flex items-center justify-between"
+                  style={{
+                    borderTop: "1px solid var(--highlight-blur)",
+                    paddingTop: "1rem",
+                  }}
+                >
+                  <div className="space-y-0.5">
+                    <Label
+                      htmlFor="isActive"
+                      className="text-sm font-medium"
+                      style={{ color: "var(--text)" }}
+                    >
+                      Drop ativo
+                    </Label>
+                  </div>
+                  <Switch
+                    id="isActive"
+                    checked={isActive}
+                    onCheckedChange={setIsActive}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="launchDate" style={{ color: "var(--text)" }}>
+                  Data de lancamento
+                </Label>
+                <Input
+                  id="launchDate"
+                  type="datetime-local"
+                  value={launchDate}
+                  onChange={(e) => setLaunchDate(e.target.value)}
+                  placeholder="Selecione a data e hora de lancamento"
+                  style={{
+                    backgroundColor: "var(--background-aux)",
+                    borderColor: "var(--highlight-blur)",
+                    color: "var(--text)",
+                  }}
+                />
               </div>
             </FormSection>
           </CardContent>
         </Card>
 
         {/* Status */}
-        <Card className="border-0 " style={{ backgroundColor: "var(--background)" }}>
+        {/* <Card
+          className="border-0 "
+          style={{ backgroundColor: "var(--background)" }}
+        >
           <CardContent className="p-4">
-            <FormSection title="Status" description="Configure a visibilidade do drop">
-              <div
-                className="flex items-center justify-between p-4 rounded-lg"
-                style={{ backgroundColor: "var(--background-aux)" }}
-              >
-                <div className="space-y-0.5">
-                  <Label
-                    htmlFor="isActive"
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text)" }}
-                  >
-                    Drop ativo
-                  </Label>
-                  <p className="text-xs font-serif" style={{ color: "var(--text-aux)" }}>
-                    Drops ativos aparecem na loja
-                  </p>
-                </div>
-                <Switch id="isActive" checked={isActive} onCheckedChange={setIsActive} />
-              </div>
+            <FormSection
+              title="Status"
+              description="Configure a visibilidade do drop"
+            >
+              
             </FormSection>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Submit Button */}
         <div
-          className="sticky bottom-20 pt-4 pb-2"
+          className="pt-4 pb-2"
           style={{ backgroundColor: "var(--background)" }}
         >
           <Button

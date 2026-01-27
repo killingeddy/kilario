@@ -29,7 +29,7 @@ import {
 
 const productStatusLabels: Record<string, string> = {
   draft: "Rascunho",
-  active: "Disponivel",
+  available: "Disponivel",
   sold: "Vendida",
   archived: "Arquivada",
 };
@@ -53,7 +53,7 @@ export function DropDetail({ id }: DropDetailProps) {
           collectionsApi.get(id),
           productsApi.list({ collection_id: id }),
         ]);
-        setCollection(collectionRes);
+        setCollection(collectionRes.data);
         setProducts(productsRes.data || []);
       } catch (error) {
         console.error("Error loading collection:", error);
@@ -87,7 +87,7 @@ export function DropDetail({ id }: DropDetailProps) {
     setIsToggling(true);
     try {
       const updated = await collectionsApi.toggle(id);
-      setCollection(updated);
+      setCollection(updated.data);
     } catch (error) {
       console.error("Error toggling collection:", error);
       alert("Erro ao alterar status");
@@ -153,7 +153,7 @@ export function DropDetail({ id }: DropDetailProps) {
             </Link>
           </Button>
           <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
-            {collection.name}
+            {collection.title}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -276,7 +276,7 @@ export function DropDetail({ id }: DropDetailProps) {
                 style={{ color: "var(--text-aux)" }}
               />
               <p className="text-sm font-serif" style={{ color: "var(--text-aux)" }}>
-                Nenhuma peca neste drop ainda
+                Nenhuma peça neste drop ainda
               </p>
             </div>
           ) : (

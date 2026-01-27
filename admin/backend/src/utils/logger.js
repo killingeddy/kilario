@@ -19,25 +19,25 @@ const formatMessage = (level, message, meta = {}) => {
 const logger = {
   error: (message, meta = {}) => {
     if (currentLevel >= LOG_LEVELS.ERROR) {
-      console.error(formatMessage("ERROR", message, meta));
+      // console.error(formatMessage("ERROR", message, meta));
     }
   },
 
   warn: (message, meta = {}) => {
     if (currentLevel >= LOG_LEVELS.WARN) {
-      console.warn(formatMessage("WARN", message, meta));
+      // console.warn(formatMessage("WARN", message, meta));
     }
   },
 
   info: (message, meta = {}) => {
     if (currentLevel >= LOG_LEVELS.INFO) {
-      console.log(formatMessage("INFO", message, meta));
+      // console.log(formatMessage("INFO", message, meta));
     }
   },
 
   debug: (message, meta = {}) => {
     if (currentLevel >= LOG_LEVELS.DEBUG) {
-      console.log(formatMessage("DEBUG", message, meta));
+      // console.log(formatMessage("DEBUG", message, meta));
     }
   },
 
@@ -48,7 +48,7 @@ const logger = {
       details,
       timestamp: new Date().toISOString(),
     };
-    console.log(formatMessage("AUDIT", action, auditLog));
+    // console.log(formatMessage("AUDIT", action, auditLog));
     return auditLog;
   },
 };

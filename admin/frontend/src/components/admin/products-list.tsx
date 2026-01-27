@@ -26,7 +26,7 @@ import {
 
 const productStatusLabels: Record<string, string> = {
   draft: "Rascunho",
-  active: "Disponivel",
+  available: "Disponivel",
   sold: "Vendida",
   archived: "Arquivada",
 };
@@ -71,7 +71,10 @@ export function ProductsList() {
   }, [search, statusFilter, collectionFilter]);
 
   const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
+    if (isNaN(value)) return "-";
+    if (value === 0) return "Grátis";
+
+    return parseFloat(value.toString()).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
@@ -94,7 +97,7 @@ export function ProductsList() {
         >
           <Link href="/admin/products/new">
             <Plus className="h-4 w-4 mr-1" />
-            Nova peca
+            Nova peça
           </Link>
         </Button>
       </div>
@@ -155,18 +158,13 @@ export function ProductsList() {
               <SelectItem value="all">Todos os drops</SelectItem>
               {collections.map((collection) => (
                 <SelectItem key={collection.id} value={collection.id}>
-                  {collection.name}
+                  {collection.title}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
       </div>
-
-      {/* Results count */}
-      <p className="text-sm font-serif" style={{ color: "var(--text-aux)" }}>
-        {total} {total === 1 ? "peca encontrada" : "peças encontradas"}
-      </p>
 
       {/* Loading */}
       {isLoading && (
@@ -180,26 +178,38 @@ export function ProductsList() {
 
       {/* Products Grid */}
       {!isLoading && (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {products.map((product) => (
             <Card
               key={product.id}
-              className="overflow-hidden border-0 "
+              className="overflow-hidden border pt-0"
               style={{ backgroundColor: "var(--background)" }}
             >
               <CardContent className="p-0">
                 <div className="flex gap-3 p-3">
                   {/* Image */}
-                  <div
-                    className="w-20 h-20 rounded-lg overflow-hidden shrink-0"
-                    style={{ backgroundColor: "var(--background-aux)" }}
-                  >
-                    <img
-                      src={product.images?.[0] || "/placeholder.svg"}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  {product.images?.[0] ? (
+                    <div
+                      className="w-20 h-20 rounded-lg overflow-hidden shrink-0"
+                      style={{ backgroundColor: "var(--background-aux)" }}
+                    >
+                      <img
+                        src={product.images?.[0] || "/placeholder.svg"}
+                        alt={product.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="flex items-center justify-center w-20 h-20 rounded-lg shrink-0"
+                      style={{ backgroundColor: "var(--highlight-blur)" }}
+                    >
+                      <Search
+                        className="h-6 w-6"
+                        style={{ color: "var(--text)" }}
+                      />
+                    </div>
+                  )}
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
@@ -219,15 +229,9 @@ export function ProductsList() {
                           {product.size || "N/A"}
                         </p>
                       </div>
-                      <p
-                        className="text-sm font-bold whitespace-nowrap"
-                        style={{ color: "var(--text)" }}
-                      >
-                        {formatCurrency(product.sell_price)}
-                      </p>
                     </div>
 
-                    <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center gap-2 mt-2">
                       <div className="flex items-center gap-2">
                         <StatusBadge
                           variant={getProductStatusVariant(product.status)}
@@ -235,15 +239,13 @@ export function ProductsList() {
                           {productStatusLabels[product.status] ||
                             product.status}
                         </StatusBadge>
-                        {product.collection && (
-                          <span
-                            className="text-xs font-serif"
-                            style={{ color: "var(--text-aux)" }}
-                          >
-                            {product.collection.name}
-                          </span>
-                        )}
                       </div>
+                      <p
+                        className="text-sm font-bold whitespace-nowrap"
+                        style={{ color: "var(--text)" }}
+                      >
+                        {formatCurrency(product.price ?? 0)}
+                      </p>
                     </div>
 
                     {/* Actions */}
@@ -284,7 +286,7 @@ export function ProductsList() {
           {products.length === 0 && (
             <div className="text-center py-12">
               <p className="font-serif" style={{ color: "var(--text-aux)" }}>
-                Nenhuma peca encontrada
+                Nenhuma peça encontrada
               </p>
             </div>
           )}
