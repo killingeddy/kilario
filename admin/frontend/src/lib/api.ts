@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:3002";
+const API_BASE_URL = "https://kilario-admin-backend.vercel.app";
 
 // Token management
 export function getToken(): string | null {
