@@ -51,7 +51,7 @@ export default function Home() {
         height={1080}
         alt="Home Image"
         style={{ objectFit: "cover", zIndex: -1 }}
-        className="-mt-25"
+        className="md:-mt-25"
       />
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mt-4 z-10">
         {products.map((product) => (
@@ -83,7 +83,7 @@ export default function Home() {
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2">
         <Image
           src="/images/canfish.png"
           width={1920}
@@ -91,8 +91,8 @@ export default function Home() {
           alt="Home Image"
           style={{ objectFit: "cover", zIndex: -1 }}
         />
-        <div className="relative">
-          <div className="py-2 pr-10 flex justify-between md:items-center flex-col md:flex-row gap-y-3 absolute top-0 w-full">
+        <div className="relative w-full">
+          <div className="py-pr-10 flex justify-between md:items-center flex-col md:flex-row gap-y-3 absolute top-0 w-full">
             <div>
               <h1 className="text-base tracking-wide font-bold text-button font-montserrat">
                 Monte seu look <span className="font-burgues">Kilariô</span>

@@ -14,21 +14,21 @@ export default function Footer() {
 
   return (
     <footer className="w-full bg-background mt-20 relative border-t border-background-blur/40">
-      <div className="mx-auto px-6 md:px-10 py-12 flex flex-col md:flex-row gap-10 md:gap-0 relative">
+      <div className="mx-auto px-6 md:px-10 md:py-12 flex flex-col md:flex-row gap-10 md:gap-0 relative">
         <div className="md:w-1/2 flex items-center justify-center md:justify-start relative">
           <Image
             src="/footerfish.png"
             alt="Kilario"
             width={400}
             height={400}
-            className="object-cover rotate-y-180 absolute -top-20 left-40 z-0"
+            className="object-cover rotate-y-180 absolute max-sm:hidden -top-20 left-40 z-0"
           />
           <Image
             src="/footerfish.png"
             alt="Kilario"
             width={400}
             height={400}
-            className="object-cover rotate-y-180 absolute top-20 -left-5 z-0"
+            className="object-cover rotate-y-180 absolute max-sm:hidden top-20 -left-5 z-0"
           />
           <Image
             src="/footerfish.png"
@@ -97,7 +97,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="w-full py-4 text-center mt-25">
+      <div className="w-full py-4 text-center mt-10 md:mt-25">
         <p className="text-xs font-montserrat text-text">
           © {new Date().getFullYear()} Kilario. Todos os direitos reservados.
         </p>
