@@ -41,6 +41,16 @@ const productController = {
     await productService.delete(id, req.admin.id);
     return responses.success(res, null, "Product deleted successfully");
   }),
+
+  getSizes: asyncHandler(async (req, res) => {
+    const sizes = await productService.getSizes();
+    return responses.success(res, sizes);
+  }),
+
+  getConditions: asyncHandler(async (req, res) => {
+    const conditions = await productService.getConditions();
+    return responses.success(res, conditions);
+  }),
 };
 
 module.exports = productController;

@@ -27,30 +27,11 @@ import {
   type Product,
   type Collection,
   type CreateProductData,
+  Size,
+  Condition,
+  sizesApi,
+  conditionsApi,
 } from "@/lib/api";
-
-const sizeOptions = [
-  "PP",
-  "P",
-  "M",
-  "G",
-  "GG",
-  "XG",
-  "36",
-  "38",
-  "40",
-  "42",
-  "44",
-  "46",
-];
-
-const conditionLabels: Record<string, string> = {
-  new: "Novo com etiqueta",
-  like_new: "Novo sem etiqueta",
-  excellent: "Excelente",
-  good: "Bom",
-  fair: "Regular",
-};
 
 const productStatusLabels: Record<string, string> = {
   draft: "Rascunho",
@@ -64,6 +45,8 @@ interface Measurement {
   value: string;
 }
 
+type ProductStatus = "draft" | "available" | "sold" | "archived";
+
 interface ProductFormProps {
   product?: Product;
   isEditing?: boolean;
@@ -73,16 +56,16 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
+
+  const [sizes, setSizes] = useState<Size[]>([]);
+  const [conditions, setConditions] = useState<Condition[]>([]);
   const [error, setError] = useState("");
 
-  // Form state
   const [title, setTitle] = useState(product?.title || "");
   const [description, setDescription] = useState(product?.description || "");
   const [brand, setBrand] = useState(product?.brand || "");
   const [category, setCategory] = useState(product?.category || "");
-  const [price, setPrice] = useState(
-    product?.price?.toString() || "",
-  );
+  const [price, setPrice] = useState(product?.price?.toString() || "");
   const [originalPrice, setOriginalPrice] = useState(
     product?.original_price?.toString() || "",
   );
@@ -90,8 +73,12 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
     product?.collection_id || "none",
   );
   const [sizeId, setSizeId] = useState(product?.size_id || "none");
-  const [condition, setCondition] = useState(product?.condition || "none");
-  const [status, setStatus] = useState(product?.status || "draft");
+  const [conditionId, setConditionId] = useState(
+    product?.condition_id || "none",
+  );
+  const [status, setStatus] = useState<ProductStatus>(
+    (product?.status as ProductStatus) || "draft",
+  );
   const [images, setImages] = useState<string[]>(product?.images || []);
   const [measurements, setMeasurements] = useState<Measurement[]>(
     product?.measurements
@@ -107,6 +94,17 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
       .list()
       .then((res) => setCollections(res.data || []))
       .catch(console.error);
+
+    sizesApi
+      .list()
+      .then((res) => setSizes(res.data || []))
+      .catch(console.error);
+
+    conditionsApi
+      .list()
+      .then((res) => setConditions(res.data || []))
+      .catch(console.error);
+      
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,16 +124,20 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
       description: description || undefined,
       category,
       brand: brand || undefined,
-      size_id: sizeId || undefined,
-      condition: condition || undefined,
-      original_price: originalPrice ? Number.parseFloat(originalPrice) : undefined,
+      size_id: sizeId !== "none" ? sizeId : undefined,
+      // No CreateProductData original era 'condition', mas no banco é 'condition_id'
+      // Ajustamos para enviar condition_id para o backend refatorado
+      condition_id: conditionId !== "none" ? conditionId : undefined,
+      original_price: originalPrice
+        ? Number.parseFloat(originalPrice)
+        : undefined,
       price: Number.parseFloat(price),
       status,
       images: images.length > 0 ? images : undefined,
       measurements:
         Object.keys(measurementsObj).length > 0 ? measurementsObj : undefined,
-      collection_id: collectionId || undefined,
-    };
+      collection_id: collectionId !== "none" ? collectionId : undefined,
+    } as any; // Cast para any pois a interface original pode não ter condition_id ainda
 
     try {
       if (isEditing && product) {
@@ -150,6 +152,9 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
       setIsSubmitting(false);
     }
   };
+
+  console.log('sizes', sizes);
+  
 
   return (
     <div className="p-4 space-y-6">
@@ -224,33 +229,15 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category" style={{ color: "var(--text)" }}>
-                    Categoria *
-                  </Label>
-                  <Input
-                    id="category"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    placeholder="Ex: Vestido, Blusa, Calca"
-                    required
-                    style={{
-                      backgroundColor: "var(--background-aux)",
-                      borderColor: "var(--highlight-blur)",
-                      color: "var(--text)",
-                    }}
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="description" style={{ color: "var(--text)" }}>
-                    Descricao
+                    Descrição
                   </Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Descreva a peça..."
-                    rows={3}
+                    placeholder="Conte detalhes sobre a peça..."
+                    rows={4}
                     style={{
                       backgroundColor: "var(--background-aux)",
                       borderColor: "var(--highlight-blur)",
@@ -261,53 +248,13 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="brand" style={{ color: "var(--text)" }}>
-                      Marca
+                    <Label htmlFor="price" style={{ color: "var(--text)" }}>
+                      Preço *
                     </Label>
                     <Input
-                      id="brand"
-                      value={brand}
-                      onChange={(e) => setBrand(e.target.value)}
-                      placeholder="Ex: Farm"
-                      style={{
-                        backgroundColor: "var(--background-aux)",
-                        borderColor: "var(--highlight-blur)",
-                        color: "var(--text)",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="originaPrice" style={{ color: "var(--text)" }}>
-                      Preco de custo (R$)
-                    </Label>
-                    <Input
-                      id="originaPrice"
+                      id="price"
                       type="number"
                       step="0.01"
-                      min="0"
-                      value={originalPrice}
-                      onChange={(e) => setOriginalPrice(e.target.value)}
-                      placeholder="0,00"
-                      style={{
-                        backgroundColor: "var(--background-aux)",
-                        borderColor: "var(--highlight-blur)",
-                        color: "var(--text)",
-                      }}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="pric" style={{ color: "var(--text)" }}>
-                      Preco de venda (R$) *
-                    </Label>
-                    <Input
-                      id="pric"
-                      type="number"
-                      step="0.01"
-                      min="0"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       placeholder="0,00"
@@ -319,22 +266,31 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                       }}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="originalPrice"
+                      style={{ color: "var(--text)" }}
+                    >
+                      Preço Original
+                    </Label>
+                    <Input
+                      id="originalPrice"
+                      type="number"
+                      step="0.01"
+                      value={originalPrice}
+                      onChange={(e) => setOriginalPrice(e.target.value)}
+                      placeholder="0,00"
+                      style={{
+                        backgroundColor: "var(--background-aux)",
+                        borderColor: "var(--highlight-blur)",
+                        color: "var(--text)",
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            </FormSection>
-          </CardContent>
-        </Card>
 
-        {/* Classification */}
-        <Card
-          className="border-0 "
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          <CardContent className="p-4">
-            <FormSection title="Classificacao">
-              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label style={{ color: "var(--text)" }}>Drop / Colecao</Label>
+                  <Label style={{ color: "var(--text)" }}>Coleção</Label>
                   <Select value={collectionId} onValueChange={setCollectionId}>
                     <SelectTrigger
                       style={{
@@ -343,13 +299,13 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                         color: "var(--text)",
                       }}
                     >
-                      <SelectValue placeholder="Selecione um drop" />
+                      <SelectValue placeholder="Selecione uma coleção" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Nenhum</SelectItem>
-                      {collections.map((collection) => (
-                        <SelectItem key={collection.id} value={collection.id}>
-                          {collection.title}
+                      <SelectItem value="none">Nenhuma</SelectItem>
+                      {collections.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.title}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -370,9 +326,10 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sizeOptions.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {s}
+                        <SelectItem value="none">Selecione</SelectItem>
+                        {sizes.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -381,7 +338,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
 
                   <div className="space-y-2">
                     <Label style={{ color: "var(--text)" }}>Estado</Label>
-                    <Select value={condition} onValueChange={setCondition}>
+                    <Select value={conditionId} onValueChange={setConditionId}>
                       <SelectTrigger
                         style={{
                           backgroundColor: "var(--background-aux)",
@@ -392,13 +349,12 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(conditionLabels).map(
-                          ([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          ),
-                        )}
+                        <SelectItem value="none">Selecione</SelectItem>
+                        {conditions.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -406,10 +362,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
 
                 <div className="space-y-2">
                   <Label style={{ color: "var(--text)" }}>Status</Label>
-                  <Select
-                    value={status}
-                    // onValueChange={setStatus}
-                  >
+                  <Select value={status} onValueChange={(value) => setStatus(value as ProductStatus)}>
                     <SelectTrigger
                       style={{
                         backgroundColor: "var(--background-aux)",

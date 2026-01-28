@@ -1,19 +1,17 @@
-const productRepository = require('../repositories/product.repository');
-const { AppError } = require('../middlewares/errorHandler');
-const { paginate, paginationResponse } = require('../utils/helpers');
-const logger = require('../utils/logger');
-
-// Valid status transitions
-const STATUS_TRANSITIONS = {
-  available: ['reserved', 'sold'],
-  reserved: ['available', 'sold'],
-  sold: [], // Cannot transition from sold
-};
+const productRepository = require("../repositories/product.repository");
+const { AppError } = require("../middlewares/errorHandler");
+const { paginate, paginationResponse } = require("../utils/helpers");
+const { transaction } = require("../database/connection");
+const { uploadBase64ToFirebase } = require("../utils/uploadImageBase64"); // Supondo este caminho
+const logger = require("../utils/logger");
 
 const productService = {
   async list(queryParams) {
-    const { page, limit, offset } = paginate(queryParams.page, queryParams.limit);
-    
+    const { page, limit, offset } = paginate(
+      queryParams.page,
+      queryParams.limit,
+    );
+
     const [products, total] = await Promise.all([
       productRepository.findAll({
         limit,
@@ -30,110 +28,150 @@ const productService = {
         search: queryParams.search,
       }),
     ]);
-    
+
     return paginationResponse(products, total, page, limit);
   },
 
   async getById(id) {
     const product = await productRepository.findById(id);
+    console.log('product 2', product);
     
     if (!product) {
-      throw new AppError('Product not found', 404);
+      throw new AppError("Product not found", 404);
     }
-    
     return product;
   },
 
   async create(data, adminId) {
-    const product = await productRepository.create(data);
-    
-    logger.audit('PRODUCT_CREATED', adminId, {
-      productId: product.id,
-      title: product.title,
-      price: product.price,
+    return await transaction(async (client) => {
+      // 1. Tratar Upload de Imagens (se houver base64)
+      const imageUrls = [];
+      if (data.images && data.images.length > 0) {
+        for (const img of data.images) {
+          if (img.startsWith("data:image")) {
+            const url = await uploadBase64ToFirebase(img, "products");
+            imageUrls.push(url);
+          } else {
+            imageUrls.push(img);
+          }
+        }
+      }
+
+      // 2. Criar Produto
+      const product = await productRepository.create(data, client);
+
+      // 3. Salvar Imagens na tabela separada
+      await productRepository.saveImages(product.id, imageUrls, client);
+
+      // 4. Salvar Medidas na tabela separada
+      if (data.measurements) {
+        await productRepository.saveMeasurements(
+          product.id,
+          data.measurements,
+          client,
+        );
+      }
+
+      logger.audit("PRODUCT_CREATED", adminId, {
+        productId: product.id,
+        title: product.title,
+      });
+      console.log('product', product);
+      
+
+      return this.getById(product.id);
     });
-    
-    return product;
   },
 
   async update(id, data, adminId) {
     const existingProduct = await productRepository.findById(id);
-    
     if (!existingProduct) {
-      throw new AppError('Product not found', 404);
+      throw new AppError("Product not found", 404);
     }
-    
-    // Don't allow updating sold products (except for minor edits)
-    if (existingProduct.status === 'sold' && data.price !== undefined) {
-      throw new AppError('Cannot modify price of sold product', 400);
+
+    if (existingProduct.status === "sold" && data.price !== undefined) {
+      throw new AppError("Cannot modify price of sold product", 400);
     }
-    
-    const product = await productRepository.update(id, data);
-    
-    logger.audit('PRODUCT_UPDATED', adminId, {
-      productId: id,
-      changes: Object.keys(data),
+
+    return await transaction(async (client) => {
+      // 1. Tratar Upload de novas Imagens
+      let imageUrls = undefined;
+      if (data.images !== undefined) {
+        imageUrls = [];
+        for (const img of data.images) {
+          if (img.startsWith("data:image")) {
+            const url = await uploadBase64ToFirebase(img, "products");
+            imageUrls.push(url);
+          } else {
+            imageUrls.push(img);
+          }
+        }
+      }
+
+      // 2. Atualizar Produto
+      const product = await productRepository.update(id, data, client);
+
+      // 3. Atualizar Imagens se enviadas
+      if (imageUrls !== undefined) {
+        await productRepository.saveImages(id, imageUrls, client);
+      }
+
+      // 4. Atualizar Medidas se enviadas
+      if (data.measurements !== undefined) {
+        await productRepository.saveMeasurements(id, data.measurements, client);
+      }
+
+      logger.audit("PRODUCT_UPDATED", adminId, {
+        productId: id,
+        changes: Object.keys(data),
+      });
+
+      return this.getById(id);
     });
-    
-    return product;
   },
 
   async updateStatus(id, newStatus, adminId) {
     const product = await productRepository.findById(id);
-    
     if (!product) {
-      throw new AppError('Product not found', 404);
+      throw new AppError("Product not found", 404);
     }
-    
-    // Validate status transition
-    const currentStatus = product.status;
-    const allowedTransitions = STATUS_TRANSITIONS[currentStatus] || [];
-    
-    if (!allowedTransitions.includes(newStatus)) {
-      throw new AppError(
-        `Cannot change status from '${currentStatus}' to '${newStatus}'. Allowed: ${allowedTransitions.join(', ') || 'none'}`,
-        400
-      );
-    }
-    
+
     const updatedProduct = await productRepository.updateStatus(id, newStatus);
-    
-    logger.audit('PRODUCT_STATUS_CHANGED', adminId, {
+
+    logger.audit("PRODUCT_STATUS_CHANGED", adminId, {
       productId: id,
-      from: currentStatus,
       to: newStatus,
     });
-    
+
     return updatedProduct;
   },
 
   async delete(id, adminId) {
     const product = await productRepository.findById(id);
-    
     if (!product) {
-      throw new AppError('Product not found', 404);
+      throw new AppError("Product not found", 404);
     }
-    
-    // Don't allow deleting sold products
-    if (product.status === 'sold') {
-      throw new AppError('Cannot delete sold product', 400);
+
+    if (product.status === "sold") {
+      throw new AppError("Cannot delete sold product", 400);
     }
-    
+
     const deleted = await productRepository.delete(id);
-    
     if (deleted) {
-      logger.audit('PRODUCT_DELETED', adminId, {
+      logger.audit("PRODUCT_DELETED", adminId, {
         productId: id,
-        title: product.title,
       });
     }
-    
     return deleted;
   },
 
-  async getStatusCounts() {
-    return productRepository.countByStatus();
+  async getSizes() {
+    return productRepository.getSizes();
   },
+
+  async getConditions() {
+    return productRepository.getConditions();
+  }
 };
 
 module.exports = productService;

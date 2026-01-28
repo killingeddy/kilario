@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:3002";
+const API_BASE_URL = "https://kilario-admin-backend.vercel.app";
 
 // Token management
 export function getToken(): string | null {
@@ -129,6 +129,16 @@ export const productsApi = {
     }),
 };
 
+// Sizes API
+export const sizesApi = {
+  list: () => apiFetch<{ data: Size[] }>("/api/admin/products/sizes/list"),
+};
+
+// Conditions API
+export const conditionsApi = {
+  list: () => apiFetch<{ data: Condition[] }>("/api/admin/products/conditions/list"),
+};
+
 // Collections API
 export const collectionsApi = {
   list: (params?: { page?: number; limit?: number; search?: string }) => {
@@ -145,9 +155,10 @@ export const collectionsApi = {
     }>(`/api/admin/collections${query ? `?${query}` : ""}`);
   },
 
-  get: (id: string) => apiFetch<{
-    data: Collection;
-  }>(`/api/admin/collections/${id}`),
+  get: (id: string) =>
+    apiFetch<{
+      data: Collection;
+    }>(`/api/admin/collections/${id}`),
 
   getActive: () => apiFetch<Collection | null>("/api/admin/collections/active"),
 
@@ -192,9 +203,10 @@ export const ordersApi = {
     }>(`/api/admin/orders${query ? `?${query}` : ""}`);
   },
 
-  get: (id: string) => apiFetch<{
-    data: Order;
-  }>(`/api/admin/orders/${id}`),
+  get: (id: string) =>
+    apiFetch<{
+      data: Order;
+    }>(`/api/admin/orders/${id}`),
 
   updateStatus: (id: string, status: string) =>
     apiFetch<Order>(`/api/admin/orders/${id}/status`, {
@@ -219,9 +231,10 @@ export const deliveriesApi = {
     }>(`/api/admin/deliveries${query ? `?${query}` : ""}`);
   },
 
-  get: (id: string) => apiFetch<{
-    data: Delivery;
-  }>(`/api/admin/deliveries/${id}`),
+  get: (id: string) =>
+    apiFetch<{
+      data: Delivery;
+    }>(`/api/admin/deliveries/${id}`),
 
   updateStatus: (id: string, status: string) =>
     apiFetch<Delivery>(`/api/admin/deliveries/${id}/status`, {
@@ -277,7 +290,7 @@ export interface Product {
   description?: string;
   category: string;
   brand?: string;
-  size?: string
+  size?: string;
   condition?: string;
   price?: number;
   original_price?: number;
@@ -286,9 +299,20 @@ export interface Product {
   measurements?: Record<string, number>;
   collection_id?: string;
   collection?: Collection;
+  condition_id?: string;
   created_at: string;
   updated_at: string;
   size_id?: string;
+}
+
+export interface Size {
+  id: string;
+  label: string;
+}
+
+export interface Condition {
+  id: string;
+  label: string;
 }
 
 export interface CreateProductData {

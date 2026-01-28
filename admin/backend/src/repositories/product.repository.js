@@ -15,7 +15,8 @@ const productRepository = {
         p.id, p.title, p.description, p.price, p.original_price,
         p.brand, p.status, p.collection_id, s.label as size,
         p.created_at, p.updated_at, c.title as collection_name,
-        ARRAY_AGG(pi.url) AS images, cond.label as condition
+        COALESCE(ARRAY_AGG(pi.url) FILTER (WHERE pi.url IS NOT NULL), '{}') AS images, 
+        cond.label as condition
       FROM products p
       LEFT JOIN collections c ON p.collection_id = c.id
       LEFT JOIN product_images pi ON p.id = pi.product_id
@@ -32,7 +33,7 @@ const productRepository = {
       params.push(status);
     }
 
-    if (collection_id) {      
+    if (collection_id) {
       sql += ` AND p.collection_id = $${paramIndex++}`;
       params.push(collection_id);
     }
@@ -45,7 +46,7 @@ const productRepository = {
 
     // Grouping
     sql += ` GROUP BY p.id, c.title, s.label, cond.label`;
-    
+
     // Sorting
     const allowedSortColumns = ["created_at", "price", "title"];
     const sortColumn = allowedSortColumns.includes(sort_by)
@@ -91,9 +92,10 @@ const productRepository = {
     const sql = `
       SELECT
         p.id, p.title, p.description, p.price, p.original_price,
-        p.brand, p.status, p.collection_id, s.label as size,
+        p.brand, p.status, p.collection_id, p.size_id, p.condition_id,
+        s.label as size_label, cond.label as condition_label,
         p.created_at, p.updated_at, c.title as collection_name,
-        ARRAY_AGG(pi.url) AS images, cond.label as condition
+        COALESCE(ARRAY_AGG(pi.url) FILTER (WHERE pi.url IS NOT NULL), '{}') AS images
       FROM products p
       LEFT JOIN collections c ON p.collection_id = c.id
       LEFT JOIN product_images pi ON p.id = pi.product_id
@@ -103,17 +105,30 @@ const productRepository = {
       GROUP BY p.id, c.title, s.label, cond.label
     `;
     const result = await query(sql, [id]);
-    return result.rows[0] || null;
+    if (!result.rows[0]) return null;
+
+    // Buscar medidas separadamente para manter a estrutura
+    const measurementsSql = `SELECT key, value FROM product_measurements WHERE product_id = $1`;
+    const measurementsResult = await query(measurementsSql, [id]);
+
+    const product = result.rows[0];
+    product.measurements = measurementsResult.rows.reduce((acc, curr) => {
+      acc[curr.key] = curr.value;
+      return acc;
+    }, {});
+
+    return product;
   },
 
-  async create(data) {
+  async create(data, client = null) {
+    const queryFn = client ? client.query.bind(client) : query;
+
     const sql = `
       INSERT INTO products (
         title, description, price, original_price,
-        size, brand, color, condition, status,
-        images, tags, collection_id
+        brand, status, collection_id, size_id, condition_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
@@ -122,21 +137,19 @@ const productRepository = {
       data.description || null,
       data.price,
       data.original_price || null,
-      data.size || null,
       data.brand || null,
-      data.color || null,
-      data.condition || "good",
-      "available",
-      JSON.stringify(data.images || []),
-      JSON.stringify(data.tags || []),
+      data.status || "available",
       data.collection_id || null,
+      data.size_id || null,
+      data.condition_id || null,
     ];
 
-    const result = await query(sql, params);
+    const result = await queryFn(sql, params);
     return result.rows[0];
   },
 
-  async update(id, data) {
+  async update(id, data, client = null) {
+    const queryFn = client ? client.query.bind(client) : query;
     const fields = [];
     const params = [];
     let paramIndex = 1;
@@ -146,11 +159,11 @@ const productRepository = {
       "description",
       "price",
       "original_price",
-      "size",
       "brand",
-      "color",
-      "condition",
+      "status",
       "collection_id",
+      "size_id",
+      "condition_id",
     ];
 
     for (const field of allowedFields) {
@@ -158,17 +171,6 @@ const productRepository = {
         fields.push(`${field} = $${paramIndex++}`);
         params.push(data[field]);
       }
-    }
-
-    // Handle JSON fields
-    if (data.images !== undefined) {
-      fields.push(`images = $${paramIndex++}`);
-      params.push(JSON.stringify(data.images));
-    }
-
-    if (data.tags !== undefined) {
-      fields.push(`tags = $${paramIndex++}`);
-      params.push(JSON.stringify(data.tags));
     }
 
     if (fields.length === 0) {
@@ -185,8 +187,42 @@ const productRepository = {
       RETURNING *
     `;
 
-    const result = await query(sql, params);
+    const result = await queryFn(sql, params);
     return result.rows[0];
+  },
+
+  // Métodos para gerenciar imagens e medidas (usados dentro de transações no service)
+  async saveImages(productId, images, client) {
+    // Limpar imagens antigas
+    await client.query(`DELETE FROM product_images WHERE product_id = $1`, [
+      productId,
+    ]);
+
+    if (images && images.length > 0) {
+      for (let i = 0; i < images.length; i++) {
+        await client.query(
+          `INSERT INTO product_images (product_id, url, position) VALUES ($1, $2, $3)`,
+          [productId, images[i], i],
+        );
+      }
+    }
+  },
+
+  async saveMeasurements(productId, measurements, client) {
+    // Limpar medidas antigas
+    await client.query(
+      `DELETE FROM product_measurements WHERE product_id = $1`,
+      [productId],
+    );
+
+    if (measurements && Object.keys(measurements).length > 0) {
+      for (const [key, value] of Object.entries(measurements)) {
+        await client.query(
+          `INSERT INTO product_measurements (product_id, key, value) VALUES ($1, $2, $3)`,
+          [productId, key, value],
+        );
+      }
+    }
   },
 
   async updateStatus(id, status) {
@@ -206,28 +242,17 @@ const productRepository = {
     return result.rowCount > 0;
   },
 
-  // Bulk update status for order processing
-  async updateStatusBulk(ids, status, client = null) {
-    const queryFn = client ? client.query.bind(client) : query;
-    const sql = `
-      UPDATE products
-      SET status = $1, updated_at = NOW()
-      WHERE id = ANY($2)
-      RETURNING id
-    `;
-    const result = await queryFn(sql, [status, ids]);
-    return result.rows;
-  },
-
-  async countByStatus() {
-    const sql = `
-      SELECT status, COUNT(*) as count
-      FROM products
-      GROUP BY status
-    `;
+  async getSizes() {
+    const sql = `SELECT id, label FROM sizes ORDER BY label`;
     const result = await query(sql);
     return result.rows;
   },
+
+  async getConditions() {
+    const sql = `SELECT id, label FROM conditions ORDER BY label`;
+    const result = await query(sql);
+    return result.rows;
+  }
 };
 
 module.exports = productRepository;
