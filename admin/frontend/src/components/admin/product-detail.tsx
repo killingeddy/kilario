@@ -40,9 +40,16 @@ export function ProductDetail({ id }: ProductDetailProps) {
   useEffect(() => {
     productsApi
       .get(id)
-      .then(setProduct)
-      .catch(() => setProduct(null))
-      .finally(() => setIsLoading(false));
+      .then((res) => {
+        setProduct(res.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching product:", error);
+        setProduct(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [id]);
 
   const handleDelete = async () => {

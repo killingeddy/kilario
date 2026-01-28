@@ -76,12 +76,12 @@ export function DashboardContent() {
   }, []);
 
   const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
+    if (isNaN(value)) return "-";
+    return parseFloat(value.toString()).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -285,10 +285,7 @@ export function DashboardContent() {
         </section>
 
         <section>
-          <Card
-            className=""
-            style={{ backgroundColor: "var(--background)" }}
-          >
+          <Card className="" style={{ backgroundColor: "var(--background)" }}>
             <CardHeader className="">
               <div className="flex items-center justify-between">
                 <CardTitle

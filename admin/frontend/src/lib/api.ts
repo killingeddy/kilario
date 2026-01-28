@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://kilario-admin-backend.vercel.app";
+const API_BASE_URL = "http://localhost:3002";
 
 // Token management
 export function getToken(): string | null {
@@ -103,7 +103,7 @@ export const productsApi = {
     }>(`/api/admin/products${query ? `?${query}` : ""}`);
   },
 
-  get: (id: string) => apiFetch<Product>(`/api/admin/products/${id}`),
+  get: (id: string) => apiFetch<{ data: Product }>(`/api/admin/products/${id}`),
 
   create: (data: CreateProductData) =>
     apiFetch<Product>("/api/admin/products", {
@@ -136,7 +136,8 @@ export const sizesApi = {
 
 // Conditions API
 export const conditionsApi = {
-  list: () => apiFetch<{ data: Condition[] }>("/api/admin/products/conditions/list"),
+  list: () =>
+    apiFetch<{ data: Condition[] }>("/api/admin/products/conditions/list"),
 };
 
 // Collections API

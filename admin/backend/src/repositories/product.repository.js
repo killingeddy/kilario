@@ -121,8 +121,6 @@ const productRepository = {
   },
 
   async create(data, client = null) {
-    const queryFn = client ? client.query.bind(client) : query;
-
     const sql = `
       INSERT INTO products (
         title, description, price, original_price,
@@ -144,7 +142,7 @@ const productRepository = {
       data.condition_id || null,
     ];
 
-    const result = await queryFn(sql, params);
+    const result = await query(sql, params);
     return result.rows[0];
   },
 

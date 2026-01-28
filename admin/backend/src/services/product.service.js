@@ -59,6 +59,8 @@ const productService = {
 
       // 2. Criar Produto
       const product = await productRepository.create(data, client);
+      console.log('product created', product);
+      
 
       // 3. Salvar Imagens na tabela separada
       await productRepository.saveImages(product.id, imageUrls, client);

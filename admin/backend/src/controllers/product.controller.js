@@ -16,7 +16,7 @@ const productController = {
 
   create: asyncHandler(async (req, res) => {
     const product = await productService.create(req.body, req.admin.id);
-    return responses.created(res, { product }, "Product created successfully");
+    return responses.created(res, product, "Product created successfully");
   }),
 
   update: asyncHandler(async (req, res) => {
