@@ -190,7 +190,7 @@ export function ProductsList() {
                   {/* Image */}
                   {product.images?.[0] ? (
                     <div
-                      className="w-20 h-20 rounded-lg overflow-hidden shrink-0"
+                      className="w-30 h-30 rounded-lg overflow-hidden shrink-0"
                       style={{ backgroundColor: "var(--background-aux)" }}
                     >
                       <img
@@ -201,7 +201,7 @@ export function ProductsList() {
                     </div>
                   ) : (
                     <div
-                      className="flex items-center justify-center w-20 h-20 rounded-lg shrink-0"
+                      className="flex items-center justify-center w-30 h-30 rounded-lg shrink-0"
                       style={{ backgroundColor: "var(--highlight-blur)" }}
                     >
                       <Search

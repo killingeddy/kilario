@@ -105,7 +105,10 @@ export function DropDetail({ id }: DropDetailProps) {
   };
 
   const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
+    if (isNaN(value)) return "-";
+    if (value === 0) return "Grátis";
+
+    return parseFloat(value.toString()).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
@@ -312,7 +315,7 @@ export function DropDetail({ id }: DropDetailProps) {
                         className="text-xs font-serif"
                         style={{ color: "var(--text-aux)" }}
                       >
-                        {formatCurrency(product.sell_price)}
+                        {formatCurrency(product.price ?? 0)}
                       </span>
                     </div>
                   </div>

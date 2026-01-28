@@ -16,7 +16,7 @@ export function ProductEditWrapper({ id }: ProductEditWrapperProps) {
   useEffect(() => {
     productsApi
       .get(id)
-      .then(setProduct)
+      .then((res) => setProduct(res.data))
       .catch(() => setProduct(null))
       .finally(() => setIsLoading(false));
   }, [id]);

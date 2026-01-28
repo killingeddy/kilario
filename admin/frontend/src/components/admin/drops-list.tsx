@@ -79,7 +79,7 @@ export function DropsList() {
                 <div className="flex items-start gap-3">
                   {/* Icon */}
                   <div
-                    className="flex items-center justify-center h-12 w-12 rounded-lg shrink-0"
+                    className="flex items-center justify-center h-20 w-20 rounded-lg shrink-0"
                     style={{ backgroundColor: "var(--highlight-blur)" }}
                   >
                     <Layers className="h-6 w-6" style={{ color: "var(--text)" }} />

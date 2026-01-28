@@ -136,7 +136,6 @@ export function NotificationsList() {
             size="sm"
             onClick={markAllAsRead}
             className="bg-transparent"
-            style={{ borderColor: "var(--highlight-blur)" }}
           >
             <CheckCheck className="h-4 w-4 mr-1" />
             Marcar todas
@@ -154,17 +153,13 @@ export function NotificationsList() {
             <Card
               key={notification.id}
               className={cn(
-                "transition-opacity cursor-pointer border-0 ",
-                !notification.is_read && "ring-1",
+                "transition-opacity cursor-pointer border pt-0",
               )}
-              style={{
-                backgroundColor: "var(--background)",
-              }}
               onClick={() =>
                 !notification.is_read && markAsRead(notification.id)
               }
             >
-              <CardContent className="p-4">
+              <CardContent className="p-4 border-0">
                 <div className="flex items-start gap-3">
                   {/* Icon */}
                   <div

@@ -16,7 +16,7 @@ export function DropEditWrapper({ id }: DropEditWrapperProps) {
   useEffect(() => {
     collectionsApi
       .get(id)
-      .then(setCollection)
+      .then((res) => setCollection(res.data))
       .catch(() => setCollection(null))
       .finally(() => setIsLoading(false));
   }, [id]);
