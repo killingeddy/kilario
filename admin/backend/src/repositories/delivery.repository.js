@@ -79,12 +79,17 @@ const deliveryRepository = {
   async findById(id) {
     const sql = `
       SELECT 
-        d.id, d.order_id, d.status, d.scheduled_at, d.delivered_at, d.notes,
+        d.id, d.order_id, d.status, d.notes,
         d.created_at, d.updated_at,
-        o.reference_code, o.customer_name, o.customer_email, o.customer_phone,
-        o.shipping_address, o.total
+        o.reference_code, u.name as customer_name, 
+        u.email as customer_email, u.phone as customer_phone,
+        CONCAT(
+        d.address, ', ', 
+        d.neighborhood, ', ',
+        d.city)
       FROM deliveries d
       JOIN orders o ON d.order_id = o.id
+      JOIN users u ON o.user_id = u.id
       WHERE d.id = $1
     `;
     const result = await query(sql, [id]);
@@ -92,7 +97,21 @@ const deliveryRepository = {
   },
 
   async findByOrderId(orderId) {
-    const sql = `SELECT * FROM deliveries WHERE order_id = $1`;
+    const sql = `
+      SELECT 
+        d.id, d.order_id, d.status, d.notes,
+        d.created_at, d.updated_at,
+        o.reference_code, u.name as customer_name, 
+        u.email as customer_email, u.phone as customer_phone,
+        CONCAT(
+        d.address, ', ', 
+        d.neighborhood, ', ',
+        d.city)
+      FROM deliveries d
+      JOIN orders o ON d.order_id = o.id
+      JOIN users u ON o.user_id = u.id
+      WHERE d.order_id = $1
+    `;
     const result = await query(sql, [orderId]);
     return result.rows[0] || null;
   },

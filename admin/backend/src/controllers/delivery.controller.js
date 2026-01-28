@@ -11,7 +11,7 @@ const deliveryController = {
   getById: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const delivery = await deliveryService.getById(id,);
-    return responses.success(res, { delivery });
+    return responses.success(res, delivery);
   }),
 
   updateStatus: asyncHandler(async (req, res) => {
@@ -25,7 +25,7 @@ const deliveryController = {
     );
     return responses.success(
       res,
-      { delivery },
+      delivery,
       "Delivery status updated successfully",
     );
   }),

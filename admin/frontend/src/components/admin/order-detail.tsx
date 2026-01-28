@@ -31,7 +31,7 @@ const orderStatusLabels: Record<string, string> = {
   pending: "Pendente",
   paid: "Pago",
   shipped: "Enviado",
-  delivered: "Entregue",
+  reunded: "Reembolsado",
   cancelled: "Cancelado",
 };
 
@@ -55,8 +55,12 @@ export function OrderDetail({ id }: OrderDetailProps) {
   useEffect(() => {
     ordersApi
       .get(id)
-      .then(setOrder)
-      .catch(() => setOrder(null))
+      .then((res) => {
+        setOrder(res.data);
+      })
+      .catch((error) => {
+        console.error("Error loading order:", error);
+      })
       .finally(() => setIsLoading(false));
   }, [id]);
 
@@ -76,7 +80,10 @@ export function OrderDetail({ id }: OrderDetailProps) {
   };
 
   const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
+    if (isNaN(value)) return "-";
+    if (value === 0) return "Grátis";
+
+    return parseFloat(value.toString()).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
@@ -102,7 +109,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
       </div>
     );
   }
-
+  
   if (!order) {
     return (
       <div className="p-4">
@@ -134,7 +141,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
         </Button>
         <div>
           <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>
-            Pedido #{order.id.slice(0, 8)}
+            Pedido #{order?.id?.slice(0, 8)}
           </h1>
           <p
             className="text-xs font-serif"
@@ -178,7 +185,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="paid">Pago</SelectItem>
                   <SelectItem value="shipped">Enviado</SelectItem>
-                  <SelectItem value="delivered">Entregue</SelectItem>
+                  <SelectItem value="reunded">Reembolsado</SelectItem>
                   <SelectItem value="cancelled">Cancelado</SelectItem>
                 </SelectContent>
               </Select>

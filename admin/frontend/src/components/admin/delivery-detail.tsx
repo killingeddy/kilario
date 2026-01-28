@@ -47,9 +47,15 @@ export function DeliveryDetail({ id }: DeliveryDetailProps) {
   useEffect(() => {
     deliveriesApi
       .get(id)
-      .then(setDelivery)
-      .catch(() => setDelivery(null))
-      .finally(() => setIsLoading(false));
+      .then((res) => {
+        setDelivery(res.data);
+      })
+      .catch((error) => {
+        console.error("Error loading delivery:", error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [id]);
 
   const handleStatusChange = async (newStatus: string) => {

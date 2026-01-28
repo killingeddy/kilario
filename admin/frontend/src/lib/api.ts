@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://kilario-admin-backend.vercel.app";
+const API_BASE_URL = "http://localhost:3002";
 
 // Token management
 export function getToken(): string | null {
@@ -192,7 +192,9 @@ export const ordersApi = {
     }>(`/api/admin/orders${query ? `?${query}` : ""}`);
   },
 
-  get: (id: string) => apiFetch<Order>(`/api/admin/orders/${id}`),
+  get: (id: string) => apiFetch<{
+    data: Order;
+  }>(`/api/admin/orders/${id}`),
 
   updateStatus: (id: string, status: string) =>
     apiFetch<Order>(`/api/admin/orders/${id}/status`, {
@@ -217,7 +219,9 @@ export const deliveriesApi = {
     }>(`/api/admin/deliveries${query ? `?${query}` : ""}`);
   },
 
-  get: (id: string) => apiFetch<Delivery>(`/api/admin/deliveries/${id}`),
+  get: (id: string) => apiFetch<{
+    data: Delivery;
+  }>(`/api/admin/deliveries/${id}`),
 
   updateStatus: (id: string, status: string) =>
     apiFetch<Delivery>(`/api/admin/deliveries/${id}/status`, {
@@ -336,6 +340,8 @@ export interface Order {
   address?: Address;
   created_at: string;
   updated_at: string;
+  notes?: string;
+  item_count?: number;
 }
 
 export interface OrderItem {

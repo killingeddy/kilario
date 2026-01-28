@@ -95,11 +95,15 @@ const orderRepository = {
   async findById(id) {
     const sql = `
       SELECT 
-        o.id, o.reference_code, o.customer_name, o.customer_email, o.customer_phone,
-        o.shipping_address, o.total, o.status, o.payment_method, o.payment_id,
-        o.notes, o.created_at, o.updated_at, o.paid_at
+        o.id, o.reference_code, u.name as customer_name, u.email as customer_email, u.phone as customer_phone,
+        o.total, o.status, o.payment_method, o.external_payment_id,
+        o.created_at, o.paid_at,
+        COUNT(oi.id) as item_count
       FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      LEFT JOIN users u ON o.user_id = u.id
       WHERE o.id = $1
+      GROUP BY o.id, u.name, u.email, u.phone
     `;
     const result = await query(sql, [id]);
     return result.rows[0] || null;
@@ -112,18 +116,22 @@ const orderRepository = {
     // Get order items with product details
     const itemsSql = `
       SELECT 
-        oi.id, oi.product_id, oi.price, oi.created_at,
-        p.name as product_name, p.images as product_images,
-        p.size as product_size, p.brand as product_brand
+        oi.id, oi.product_id, oi.price,
+        p.title as product_name, ARRAy_AGG(pi.url) AS product_images,
+        s.label as product_size, p.brand as product_brand
       FROM order_items oi
       JOIN products p ON oi.product_id = p.id
+      LEFT JOIN product_images pi ON p.id = pi.product_id
+      LEFT JOIN conditions cond ON p.condition_id = cond.id
+      LEFT JOIN sizes s ON p.size_id = s.id
       WHERE oi.order_id = $1
+      GROUP BY oi.id, p.title, s.label, p.brand
     `;
     const itemsResult = await query(itemsSql, [id]);
 
     // Get delivery info
     const deliverySql = `
-      SELECT id, status, scheduled_at, delivered_at, notes
+      SELECT id, status, notes
       FROM deliveries
       WHERE order_id = $1
     `;

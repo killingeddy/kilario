@@ -232,8 +232,8 @@ export function OrdersList() {
                           className="text-xs font-serif"
                           style={{ color: "var(--text-aux)" }}
                         >
-                          {order.items?.length || 0}{" "}
-                          {(order.items?.length || 0) === 1 ? "item" : "itens"}
+                          {order.item_count || 0}{" "}
+                          {(order.item_count === 1 ? "item" : "itens")}
                         </p>
                       </div>
                       <ChevronRight
