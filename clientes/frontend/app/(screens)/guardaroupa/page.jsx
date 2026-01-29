@@ -1,4 +1,4 @@
-import LookBuilder from '../components/LookBuilder';
+import LookBuilder from '../../components/LookBuilder';
 
 export default function Home() {
   return (

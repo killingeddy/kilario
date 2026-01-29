@@ -1,4 +1,4 @@
-import MouseFollower from "../components/MouseFollower";
+import MouseFollower from "../../components/MouseFollower";
 
 export default function Page() {
   return (
