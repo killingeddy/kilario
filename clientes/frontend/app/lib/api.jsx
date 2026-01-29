@@ -5,7 +5,7 @@ const useApi = () => {
   const api = useMemo(() => {
     return axios.create({
       baseURL:
-      "http://localhost:3002/api",
+      "https://kilario-clients-backend.vercel.app/api",
       headers: {
         "Content-Type": "application/json",
       },
