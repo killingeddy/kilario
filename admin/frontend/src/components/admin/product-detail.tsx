@@ -156,22 +156,12 @@ export function ProductDetail({ id }: ProductDetailProps) {
 
       {/* Images */}
       <div className="space-y-2">
-        <div
-          className="aspect-square rounded-xl overflow-hidden"
-          style={{ backgroundColor: "var(--background-aux)" }}
-        >
-          <img
-            src={product.images?.[0] || "/placeholder.svg"}
-            alt={product.title}
-            className="w-full h-full object-cover"
-          />
-        </div>
         {product.images && product.images.length > 1 && (
           <div className="flex gap-2 overflow-x-auto pb-2">
             {product.images.map((image, index) => (
               <div
                 key={index}
-                className="w-16 h-16 rounded-lg overflow-hidden shrink-0"
+                className="w-56 h-56 rounded-lg overflow-hidden shrink-0"
                 style={{ backgroundColor: "var(--background-aux)" }}
               >
                 <img
@@ -248,21 +238,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
         </CardHeader>
         <CardContent className="p-4 pt-0">
           <dl className="space-y-3">
-            <div className="flex justify-between">
-              <dt
-                className="text-sm font-serif"
-                style={{ color: "var(--text-aux)" }}
-              >
-                Categoria
-              </dt>
-              <dd
-                className="text-sm font-medium"
-                style={{ color: "var(--text)" }}
-              >
-                {product.category}
-              </dd>
-            </div>
-            {product.size && (
+            {product.size_label && (
               <div className="flex justify-between">
                 <dt
                   className="text-sm font-serif"
@@ -274,11 +250,11 @@ export function ProductDetail({ id }: ProductDetailProps) {
                   className="text-sm font-medium"
                   style={{ color: "var(--text)" }}
                 >
-                  {product.size}
+                  {product.size_label}
                 </dd>
               </div>
             )}
-            {product.condition && (
+            {product.condition_label && (
               <div className="flex justify-between">
                 <dt
                   className="text-sm font-serif"
@@ -290,7 +266,7 @@ export function ProductDetail({ id }: ProductDetailProps) {
                   className="text-sm font-medium"
                   style={{ color: "var(--text)" }}
                 >
-                  {conditionLabels[product.condition] || product.condition}
+                  {product.condition_label}
                 </dd>
               </div>
             )}

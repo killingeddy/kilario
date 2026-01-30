@@ -16,8 +16,8 @@ const _nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Brechó Admin",
-  description: "Painel administrativo do brechó",
+  title: "Admin Kilariô",
+  description: "Painel administrativo do brechó Kilariô",
   generator: "v0.app",
   icons: {
     icon: [
@@ -53,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`font-sans antialiased`}>
+      <body className={`font-sans antialiased ${_montserrat.variable} ${_nunito.variable}`}>
         <AuthProvider>{children}</AuthProvider>
         <Analytics />
       </body>

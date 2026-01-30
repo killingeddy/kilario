@@ -304,6 +304,8 @@ export interface Product {
   created_at: string;
   updated_at: string;
   size_id?: string;
+  condition_label?: string;
+  size_label?: string;
 }
 
 export interface Size {

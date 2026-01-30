@@ -104,7 +104,6 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
       .list()
       .then((res) => setConditions(res.data || []))
       .catch(console.error);
-      
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,10 +122,8 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
       title,
       description: description || undefined,
       category,
-      brand: brand || undefined,
+      brand: 1 || undefined,
       size_id: sizeId !== "none" ? sizeId : undefined,
-      // No CreateProductData original era 'condition', mas no banco é 'condition_id'
-      // Ajustamos para enviar condition_id para o backend refatorado
       condition_id: conditionId !== "none" ? conditionId : undefined,
       original_price: originalPrice
         ? Number.parseFloat(originalPrice)
@@ -137,7 +134,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
       measurements:
         Object.keys(measurementsObj).length > 0 ? measurementsObj : undefined,
       collection_id: collectionId !== "none" ? collectionId : undefined,
-    } as any; // Cast para any pois a interface original pode não ter condition_id ainda
+    } as any;
 
     try {
       if (isEditing && product) {
@@ -153,8 +150,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
     }
   };
 
-  console.log('sizes', sizes);
-  
+  console.log("sizes", sizes);
 
   return (
     <div className="p-4 space-y-6">
@@ -210,22 +206,41 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
           <CardContent className="p-4">
             <FormSection title="Informacoes basicas">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title" style={{ color: "var(--text)" }}>
-                    Nome da peça *
-                  </Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Ex: Vestido Floral Midi"
-                    required
-                    style={{
-                      backgroundColor: "var(--background-aux)",
-                      borderColor: "var(--highlight-blur)",
-                      color: "var(--text)",
-                    }}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2 col-span-1 md:col-span-2">
+                    <Label htmlFor="title" style={{ color: "var(--text)" }}>
+                      Nome da peça *
+                    </Label>
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Ex: Vestido Floral Midi"
+                      required
+                      style={{
+                        backgroundColor: "var(--background-aux)",
+                        borderColor: "var(--highlight-blur)",
+                        color: "var(--text)",
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2 col-span-1">
+                    <Label htmlFor="brand" style={{ color: "var(--text)" }}>
+                      Marca *
+                    </Label>
+                    <Input
+                      id="brand"
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
+                      placeholder="Ex: Zara"
+                      required
+                      style={{
+                        backgroundColor: "var(--background-aux)",
+                        borderColor: "var(--highlight-blur)",
+                        color: "var(--text)",
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -289,31 +304,65 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label style={{ color: "var(--text)" }}>Coleção</Label>
-                  <Select value={collectionId} onValueChange={setCollectionId}>
-                    <SelectTrigger
-                      style={{
-                        backgroundColor: "var(--background-aux)",
-                        borderColor: "var(--highlight-blur)",
-                        color: "var(--text)",
-                      }}
-                    >
-                      <SelectValue placeholder="Selecione uma coleção" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhuma</SelectItem>
-                      {collections.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
+                  <div className="space-y-2 w-full">
+                    <Label style={{ color: "var(--text)" }}>Coleção</Label>
+                    <Select
+                      value={collectionId}
+                      onValueChange={setCollectionId}
+                    >
+                      <SelectTrigger
+                        style={{
+                          backgroundColor: "var(--background-aux)",
+                          borderColor: "var(--highlight-blur)",
+                          color: "var(--text)",
+                        }}
+                        className="w-full"
+                      >
+                        <SelectValue placeholder="Selecione uma coleção" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhuma</SelectItem>
+                        {collections.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 w-full">
+                    <Label style={{ color: "var(--text)" }}>Status</Label>
+                    <Select
+                      value={status}
+                      onValueChange={(value) =>
+                        setStatus(value as ProductStatus)
+                      }
+                    >
+                      <SelectTrigger
+                        style={{
+                          backgroundColor: "var(--background-aux)",
+                          borderColor: "var(--highlight-blur)",
+                          color: "var(--text)",
+                        }}
+                        className="w-full"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(productStatusLabels).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ),
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2 w-full">
                     <Label style={{ color: "var(--text)" }}>Tamanho</Label>
                     <Select value={sizeId} onValueChange={setSizeId}>
                       <SelectTrigger
@@ -322,6 +371,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                           borderColor: "var(--highlight-blur)",
                           color: "var(--text)",
                         }}
+                        className="w-full"
                       >
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
@@ -336,7 +386,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 w-full">
                     <Label style={{ color: "var(--text)" }}>Estado</Label>
                     <Select value={conditionId} onValueChange={setConditionId}>
                       <SelectTrigger
@@ -345,6 +395,7 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                           borderColor: "var(--highlight-blur)",
                           color: "var(--text)",
                         }}
+                        className="w-full"
                       >
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
@@ -358,30 +409,6 @@ export function ProductForm({ product, isEditing = false }: ProductFormProps) {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label style={{ color: "var(--text)" }}>Status</Label>
-                  <Select value={status} onValueChange={(value) => setStatus(value as ProductStatus)}>
-                    <SelectTrigger
-                      style={{
-                        backgroundColor: "var(--background-aux)",
-                        borderColor: "var(--highlight-blur)",
-                        color: "var(--text)",
-                      }}
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(productStatusLabels).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ),
-                      )}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             </FormSection>
