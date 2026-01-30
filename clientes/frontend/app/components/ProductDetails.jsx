@@ -24,7 +24,7 @@ export default function ProductDetails({ product }) {
     <div className="mx-auto max-w-6xl md:py-6">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         {/* ESQUERDA — IMAGENS */}
-        <div className="relative w-full aspect-square overflow-hidden rounded-lg bg-background">
+        <div className="relative w-full aspect-square overflow-hidden rounded-lg">
           <Swiper
             modules={[Navigation]}
             navigation={{
@@ -87,7 +87,49 @@ export default function ProductDetails({ product }) {
         </div>
 
         {/* DIREITA — INFORMAÇÕES */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 relative">
+          <Image
+            src="/footerfish.png"
+            alt="Kilario"
+            width={200}
+            height={200}
+            className="object-cover rotate-y-180 absolute max-sm:hidden top-80 left-20 z-0 opacity-35 -z-50"
+          />
+          <Image
+            src="/footerfish.png"
+            alt="Kilario"
+            width={200}
+            height={200}
+            className="object-cover rotate-y-180 absolute max-sm:hidden top-50 -left-5 z-0 opacity-35 -z-50"
+          />
+          <Image
+            src="/footerfish.png"
+            alt="Kilario"
+            width={200}
+            height={200}
+            className="object-cover rotate-y-180 absolute max-sm:hidden -top-10 left-75 opacity-35 -z-50"
+          />
+          <Image
+            src="/footerfish.png"
+            alt="Kilario"
+            width={200}
+            height={200}
+            className="object-cover rotate-y-180 absolute max-sm:hidden top-20 left-25 opacity-35 -z-50"
+          />
+          <Image
+            src="/footerfish.png"
+            alt="Kilario"
+            width={200}
+            height={200}
+            className="object-cover rotate-y-180 absolute max-sm:hidden -top-20 left-0 opacity-35 -z-50"
+          />
+          <Image
+            src="/footerfish.png"
+            alt="Kilario"
+            width={200}
+            height={200}
+            className="object-cover rotate-y-180 absolute max-sm:hidden top-55 left-75 opacity-35 -z-50"
+          />
           {/* TÍTULO */}
           <div>
             <h1 className="text-xl font-montserrat font-semibold text-text">
