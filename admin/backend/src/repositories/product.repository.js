@@ -250,6 +250,22 @@ const productRepository = {
     const sql = `SELECT id, label FROM conditions ORDER BY label`;
     const result = await query(sql);
     return result.rows;
+  },
+
+  async getStatusCounts() {
+    const sql = `
+      SELECT 
+        status, 
+        COUNT(*) as count 
+      FROM products 
+      GROUP BY status
+    `;
+    const result = await query(sql);
+    const counts = {};
+    result.rows.forEach(row => {
+      counts[row.status] = parseInt(row.count, 10);
+    });
+    return counts;
   }
 };
 

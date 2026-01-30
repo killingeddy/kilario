@@ -228,12 +228,11 @@ const orderRepository = {
   async getRecentOrders(limit = 5) {
     const sql = `
       SELECT 
-        o.id, o.reference_code, o.customer_name, o.total, o.status,
-        o.created_at,
-        COUNT(oi.id) as item_count
+        o.id, o.reference_code, u.name as customer_name, u.email as customer_email,
+        o.total, o.status, o.created_at
       FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      GROUP BY o.id
+      LEFT JOIN users u ON o.user_id = u.id
+      GROUP BY o.id, u.name, u.email
       ORDER BY o.created_at DESC
       LIMIT $1
     `;

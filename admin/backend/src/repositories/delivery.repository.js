@@ -174,7 +174,7 @@ const deliveryRepository = {
   async countPending() {
     const sql = `
       SELECT COUNT(*) FROM deliveries
-      WHERE status IN ('pending', 'scheduled', 'in_transit')
+      WHERE status IN ('pending', 'scheduled', 'delivered')
     `;
     const result = await query(sql);
     return parseInt(result.rows[0].count, 10);

@@ -58,7 +58,9 @@ export function DashboardContent() {
               .catch(() => ({ data: [], unreadCount: 0 })),
           ]);
 
-        if (statsRes) setStats(statsRes);
+        if (statsRes) {
+          setStats(statsRes.data.summary || null);
+        }
         setRecentOrders(ordersRes.data || []);
         setActiveCollections(
           (collectionsRes.data || []).filter((c) => c.is_active),
@@ -122,7 +124,7 @@ export function DashboardContent() {
         />
         <DataCard
           title="Peças disponiveis"
-          value={stats?.total_products || 0}
+          value={stats?.available_products || 0}
           icon={<ShirtIcon className="h-5 w-5" />}
         />
       </section>

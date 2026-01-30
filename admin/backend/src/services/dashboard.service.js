@@ -24,30 +24,18 @@ const dashboardService = {
       this.getMonthSales(),
     ]);
 
-    const productCounts = {
-      available: 0,
-      reserved: 0,
-      sold: 0,
-      total: 0,
-    };
-
-    productStatusCounts.forEach(({ status, count }) => {
-      productCounts[status] = parseInt(count, 10);
-      productCounts.total += parseInt(count, 10);
-    });
-
     return {
       summary: {
         total_sales: parseInt(salesStats.total_sales, 10),
         total_orders: parseInt(salesStats.order_count, 10),
-        available_products: productCounts.available,
+        available_products: productStatusCounts.available,
         pending_deliveries: pendingDeliveries,
         today_sales: parseInt(todaySales.total_sales, 10),
         today_orders: parseInt(todaySales.order_count, 10),
         month_sales: parseInt(monthSales.total_sales, 10),
         month_orders: parseInt(monthSales.order_count, 10),
       },
-      products: productCounts,
+      products: productStatusCounts,
       recent_orders: recentOrders,
       recent_notifications: recentNotifications,
     };

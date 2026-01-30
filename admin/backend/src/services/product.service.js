@@ -173,7 +173,11 @@ const productService = {
 
   async getConditions() {
     return productRepository.getConditions();
-  }
+  },
+
+  async getStatusCounts() {
+    return productRepository.getStatusCounts();
+  },
 };
 
 module.exports = productService;

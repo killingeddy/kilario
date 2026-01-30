@@ -273,7 +273,8 @@ export const notificationsApi = {
 
 // Dashboard API
 export const dashboardApi = {
-  getStats: () => apiFetch<DashboardStats>("/api/admin/dashboard/stats"),
+  getStats: () =>
+    apiFetch<{ data: { summary: DashboardStats } }>("/api/admin/dashboard"),
 
   getRecentSales: () => apiFetch<Order[]>("/api/admin/dashboard/recent-sales"),
 };
@@ -377,6 +378,8 @@ export interface OrderItem {
   product?: Product;
   quantity: number;
   price: number;
+  product_name?: string;
+  product_images?: string[];
 }
 
 export interface Address {
@@ -418,4 +421,5 @@ export interface DashboardStats {
   total_products: number;
   sales_this_month?: number;
   orders_this_month?: number;
+  available_products?: number;
 }

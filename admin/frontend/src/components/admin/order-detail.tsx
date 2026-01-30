@@ -109,7 +109,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
       </div>
     );
   }
-  
+
   if (!order) {
     return (
       <div className="p-4">
@@ -274,8 +274,8 @@ export function OrderDetail({ id }: OrderDetailProps) {
                   style={{ backgroundColor: "var(--background-aux)" }}
                 >
                   <img
-                    src={item.product?.images?.[0] || "/placeholder.svg"}
-                    alt={item.product?.title || "Produto"}
+                    src={item.product_images?.[0] || "/placeholder.svg"}
+                    alt={item.product_name || "Produto"}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -284,7 +284,7 @@ export function OrderDetail({ id }: OrderDetailProps) {
                     className="text-sm font-medium truncate"
                     style={{ color: "var(--text)" }}
                   >
-                    {item.product?.title || "Produto"}
+                    {item.product_name || "Produto"}
                   </p>
                   {item.quantity > 1 && (
                     <p
